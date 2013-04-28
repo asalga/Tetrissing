@@ -35,6 +35,11 @@ public static class Keyboard{
    * Set the state of a key to either down (true) or up (false)
    */
   public static void setKeyDown(int key, boolean state){
+    
+    if(key > 127){
+      return;
+    }
+    
     // If the key is locked, and the user just released the key, add to our internal count
     if(lockedKeys[key] && state == false){
       lockedKeyPresses[key]++;

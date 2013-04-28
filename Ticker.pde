@@ -6,6 +6,7 @@ public class Ticker{
   private int lastTime;
   private float deltaTime;
   private boolean isPaused;
+  private float totalTime;
   
   public Ticker(){
     reset();
@@ -15,6 +16,7 @@ public class Ticker{
     deltaTime = 0f;
     lastTime = -1;
     isPaused = false;
+    totalTime = 0f;
   }
   
   //
@@ -26,6 +28,10 @@ public class Ticker{
     if(isPaused == true){
       reset();
     }
+  }
+  
+  public float getTotalTime(){
+    return totalTime;
   }
   
   /*
@@ -42,11 +48,6 @@ public class Ticker{
    *
    */
   public void tick(){
-    
-   // if(isPaused){
-     // return 0;
-    //}
-    
     if(lastTime == -1){
       lastTime = millis();
     }
@@ -54,6 +55,6 @@ public class Ticker{
     int delta = millis() - lastTime;
     lastTime = millis();
     deltaTime = delta/1000f;
-    //return delta/1000f;
+    totalTime += deltaTime;
   }
 }

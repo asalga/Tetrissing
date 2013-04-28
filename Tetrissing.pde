@@ -14,6 +14,8 @@ int ghostShapeCol;
 int ghostShapeRow;
 boolean drawGhostPiece;
 
+final float SEC_PER_MOVE = 0.08f;
+
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -36,11 +38,18 @@ final int BLUE = 3;
 final int GREEN = 4;
 final int MAX_COLORS = 4;
 
+// When user is idling, how fast do
+// the shapes fall in seconds?
+float IdleDropSpeed = 0.5f;
+
+float moveSpeed = 0.5f;
+
 float dropSpeed = 0.5f;// Refactor
 float timeCounter = 0;
 
 Ticker dropTicker;
 Debugger debug;
+Ticker moveTicker;
 
 /*
  */
@@ -72,6 +81,7 @@ public void setup(){
   size(BOARD_W_IN_PX, BOARD_H_IN_PX);
   debug = new Debugger();
   dropTicker = new Ticker();
+  moveTicker = new Ticker();
   
   numLines = 0;
   drawGhostPiece = true;
@@ -251,22 +261,31 @@ public void draw(){
   //drawBackground();
   drawGrid();
   
+  // If the left key is down, 
   if(Keyboard.isKeyDown(KEY_LEFT)){
-    currShapeCol -= 1;
-    
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-      currShapeCol += 1;
-      findGhostPiecePosition();
+    moveTicker.tick();
+    if(moveTicker.getTotalTime() >= SEC_PER_MOVE){
+      currShapeCol--;
+      
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+        currShapeCol++;
+        findGhostPiecePosition();
+      }
+      moveTicker.reset();
     }
   }
 
   if(Keyboard.isKeyDown(KEY_RIGHT)){
-    currShapeCol += 1;
-    
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-      currShapeCol -= 1;
+    moveTicker.tick();
+    if(moveTicker.getTotalTime() >= SEC_PER_MOVE){
+      currShapeCol += 1;
+      
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+        currShapeCol -= 1;
+      }
+      moveTicker.reset();
     }
-  }
+  } 
 
   pushStyle();
   color _col = getColorFromID(currentShape.getColor());

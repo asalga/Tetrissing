@@ -7,7 +7,7 @@ Tetris in Processing
 Keys:
  - Arrow keys to move shape
  - P for pause 
-
+ - Space to immediately drop piece
 
 Known Issues:
  - Pieces can't be rotated next to walls sometimes

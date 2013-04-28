@@ -2,6 +2,8 @@ IShape currentShape;
 int currShapeCol;
 int currShapeRow;
 
+boolean upKeyState = false;
+
 //
 int ghostShapeCol;
 int ghostShapeRow;
@@ -153,10 +155,9 @@ public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
 public void update(){
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.01f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.05f : 0f;
-  //rightSpeed = Keyboard.isKeyDown(KEY_RIGHT) ? 0.05f : 0f;
   
   dropTicker.tick();
-  
+    
   if(dropTicker.getTotalTime() >= dropSpeed){
     dropTicker.reset();
     
@@ -170,7 +171,6 @@ public void update(){
       }
     }
   }
-  
   
   // If the left key is down, 
   if(Keyboard.isKeyDown(KEY_LEFT)){
@@ -291,7 +291,6 @@ public void draw(){
   //drawBackground();
   drawGrid();
   
-
   findGhostPiecePosition();
   drawGhostPiece();
 
@@ -337,19 +336,29 @@ public color getColorFromID(int _color){
   else                return color(128);
 }
 
+public void rotateShape(){
+  currentShape.rotate();
+  
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+    println("collision on rotate");
+    currentShape.unRotate();
+  }
+}
+    
 public void keyPressed(){
+  
+  if(keyCode == KEY_UP && upKeyState == false){
+    rotateShape();
+    upKeyState = true;
+  }
+  
   Keyboard.setKeyDown(keyCode, true);
 }
 
 public void keyReleased(){
   
   if(keyCode == KEY_UP){
-    currentShape.rotate();
-    
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-      println("collision on rotate");
-      currentShape.unRotate();
-    }
+    upKeyState = false;
   }
   
   if(keyCode == KEY_SPACE){

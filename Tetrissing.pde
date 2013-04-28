@@ -1,10 +1,3 @@
-// Fix timing for moving shapes left and right
-
-// Allow rotating next to walls
-// Add pause feature
-// Remove side and bottom walls
-// Show piece falling down
-
 IShape currentShape;
 int currShapeCol;
 int currShapeRow;

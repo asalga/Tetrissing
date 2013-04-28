@@ -7,7 +7,7 @@ int ghostShapeCol;
 int ghostShapeRow;
 boolean drawGhostPiece;
 
-final float SEC_PER_MOVE = 0.08f;
+final float SEC_PER_MOVE = 0.2f;
 
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
@@ -75,6 +75,8 @@ public void setup(){
   debug = new Debugger();
   dropTicker = new Ticker();
   moveTicker = new Ticker();
+  
+  Keyboard.lockKeys(new int[]{KEY_P});
   
   numLines = 0;
   drawGhostPiece = true;
@@ -248,6 +250,10 @@ public int getRandomInt(int minVal, int maxVal) {
 }
 
 public void draw(){
+  if(Keyboard.isKeyDown(KEY_P) ){
+    return;
+  }
+  
   update();
   
   background(0);
@@ -336,7 +342,7 @@ public void keyReleased(){
     
     if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
       println("collision on rotate");
-       currentShape.unRotate();
+      currentShape.unRotate();
     }
   }
   

@@ -1,12 +1,12 @@
 public class BoxShape implements IShape{
   int[][] shape;
-  int _color;
+  int col;
   
   BoxShape(){
     shape = new int[2][2];
     shape[0] = new int[]{1, 1};
     shape[1] = new int[]{1, 1};
-    _color = getRandomInt(1,4);
+    col = getRandomInt(1,4);
   }
   
   public int[][] getArr(){
@@ -21,6 +21,6 @@ public class BoxShape implements IShape{
   }
   
   public int getColor(){
-    return _color;
+    return col;
   }
 }

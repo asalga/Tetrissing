@@ -7,8 +7,6 @@ int ghostShapeCol;
 int ghostShapeRow;
 boolean drawGhostPiece;
 
-final float SEC_PER_MOVE = 0.2f;
-
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -24,25 +22,22 @@ int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE;
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
-final int EMPTY = 0;
-final int WHITE = 1;
-final int RED = 2;
-final int BLUE = 3;
-final int GREEN = 4;
+final int EMPTY  = 0;
+final int WHITE  = 1;
+final int RED    = 2;
+final int BLUE   = 3;
+final int GREEN  = 4;
 final int MAX_COLORS = 4;
 
-// When user is idling, how fast do
-// the shapes fall in seconds?
-float IdleDropSpeed = 0.5f;
+float sideSpeed = 0.5f;
+float dropSpeed = 0.5f;
 
-float moveSpeed = 0.5f;
-
-float dropSpeed = 0.5f;// Refactor
 float timeCounter = 0;
 
 Debugger debug;
 Ticker dropTicker;
-Ticker moveTicker;
+Ticker leftMoveTicker;
+Ticker rightMoveTicker;
 
 /*
  */
@@ -73,8 +68,11 @@ public IShape getRandomShape(){
 public void setup(){
   size(BOARD_W_IN_PX, BOARD_H_IN_PX);
   debug = new Debugger();
+  
   dropTicker = new Ticker();
-  moveTicker = new Ticker();
+ // moveTicker = new Ticker();
+  leftMoveTicker = new Ticker();
+  rightMoveTicker = new Ticker();
   
   Keyboard.lockKeys(new int[]{KEY_P});
   
@@ -130,7 +128,7 @@ public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   
-  // Iterate over the shape 
+  // Iterate over the shape
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -147,25 +145,58 @@ public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
       }
     }
   }
-  
   return false;
 }
 
-public void update(){  
+/*
+ */
+public void update(){
+  dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.01f : 0.5f;
+  sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.05f : 0f;
+  //rightSpeed = Keyboard.isKeyDown(KEY_RIGHT) ? 0.05f : 0f;
+  
   dropTicker.tick();
   
-  timeCounter += dropTicker.getDeltaSec();
-  
-  if(timeCounter >= dropSpeed){
+  if(dropTicker.getTotalTime() >= dropSpeed){
+    dropTicker.reset();
     
     if(currentShape != null){
       timeCounter = 0;
-      currShapeRow += 1;
+      currShapeRow++;
       
       if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-        currShapeRow -= 1;
+        currShapeRow--;
         addShapeToGrid(currentShape);
       }
+    }
+  }
+  
+  
+  // If the left key is down, 
+  if(Keyboard.isKeyDown(KEY_LEFT)){
+    leftMoveTicker.tick();
+    
+    if(leftMoveTicker.getTotalTime() >= sideSpeed){
+      currShapeCol--;
+      
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+        currShapeCol++;
+        findGhostPiecePosition();
+      }
+      leftMoveTicker.reset();
+    }
+  }
+
+
+  else if(Keyboard.isKeyDown(KEY_RIGHT)){
+    rightMoveTicker.tick();
+    if(rightMoveTicker.getTotalTime() >= sideSpeed){
+      currShapeCol++;
+      
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+        currShapeCol--;
+      }
+      rightMoveTicker.reset();
     }
   }
   
@@ -260,31 +291,6 @@ public void draw(){
   //drawBackground();
   drawGrid();
   
-  // If the left key is down, 
-  if(Keyboard.isKeyDown(KEY_LEFT)){
-    moveTicker.tick();
-    if(moveTicker.getTotalTime() >= SEC_PER_MOVE){
-      currShapeCol--;
-      
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-        currShapeCol++;
-        findGhostPiecePosition();
-      }
-      moveTicker.reset();
-    }
-  }
-
-  if(Keyboard.isKeyDown(KEY_RIGHT)){
-    moveTicker.tick();
-    if(moveTicker.getTotalTime() >= SEC_PER_MOVE){
-      currShapeCol += 1;
-      
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-        currShapeCol -= 1;
-      }
-      moveTicker.reset();
-    }
-  } 
 
   findGhostPiecePosition();
   drawGhostPiece();
@@ -346,7 +352,7 @@ public void keyReleased(){
     }
   }
   
-  if(keyCode == KEY_DOWN){
+  if(keyCode == KEY_SPACE){
     dropShape();
   }
   

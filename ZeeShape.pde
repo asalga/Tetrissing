@@ -2,11 +2,9 @@ public class ZeeShape implements IShape{
   
   int[][] shape;
   int state;
-  int lastRotation;
   int _color;
   
   ZeeShape(){
-    lastRotation = 0;
     shape = new int[3][3];
     state = 0;
     changeShape();

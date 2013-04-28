@@ -2,11 +2,9 @@ public class LineShape implements IShape{
   
   int[][] shape;
   int state;
-  int lastRotation;
   int _color;
   
   LineShape(){
-    lastRotation = 0;
     shape = new int[4][4];
     state = 0;
     changeShape();

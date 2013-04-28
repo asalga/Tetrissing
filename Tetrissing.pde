@@ -40,8 +40,8 @@ float moveSpeed = 0.5f;
 float dropSpeed = 0.5f;// Refactor
 float timeCounter = 0;
 
-Ticker dropTicker;
 Debugger debug;
+Ticker dropTicker;
 Ticker moveTicker;
 
 /*
@@ -280,15 +280,11 @@ public void draw(){
     }
   } 
 
-  pushStyle();
-  color _col = getColorFromID(currentShape.getColor());
-  fill(_col);
-  drawShape(currentShape, currShapeCol, currShapeRow);
-  popStyle();
-  
   findGhostPiecePosition();
   drawGhostPiece();
-  
+
+  drawCurrShape();
+    
   pushStyle();
   stroke(255);
   debug.draw();
@@ -307,6 +303,16 @@ public void drawGhostPiece(){
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
   popStyle();
 }
+
+public void drawCurrShape(){
+  pushStyle();
+  color _col = getColorFromID(currentShape.getColor());
+  fill(_col);
+  stroke(0);
+  drawShape(currentShape, currShapeCol, currShapeRow);
+  popStyle();
+}
+
 
 /*
  */

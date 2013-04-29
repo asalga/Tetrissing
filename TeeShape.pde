@@ -8,7 +8,7 @@ public class TeeShape implements IShape{
     shape = new int[3][3];
     state = 0;
     changeShape();
-    _color = getRandomInt(1,4);
+    _color = getRandomInt(1, 4);
   }
   
   public int[][] getArr(){

@@ -9,6 +9,8 @@ int ghostShapeCol;
 int ghostShapeRow;
 boolean drawGhostPiece;
 
+boolean playerLost = false;
+
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -17,10 +19,10 @@ int numTetrises;
 int NUM_ROWS = 20;
 int NUM_COLS = 20;
 
-int BOX_SIZE = 24;
+int BOX_SIZE = 16;
 
-int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE;
+final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE;
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -72,7 +74,6 @@ public void setup(){
   debug = new Debugger();
   
   dropTicker = new Ticker();
- // moveTicker = new Ticker();
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
   
@@ -309,8 +310,10 @@ public void draw(){
 public void drawGhostPiece(){
   pushStyle();
   color col = getColorFromID(currentShape.getColor());
-  fill(col, 32);
-  stroke(col); 
+  
+  float opacity = (ghostShapeRow - currShapeRow) / (float)NUM_ROWS * 32;
+  fill(col, opacity);
+  stroke(col, opacity * 4); 
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
   popStyle();
 }

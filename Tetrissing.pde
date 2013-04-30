@@ -6,6 +6,16 @@ final int O_SHAPE = 4;
 final int Z_SHAPE = 5;
 final int S_SHAPE = 6;
 
+final int EMPTY   = 0;
+final int RED     = 1;
+final int ORANGE  = 2;
+final int MAGENTA = 3;
+final int BLUE    = 4;
+final int GREEN   = 5;
+final int OLIVE   = 6;
+final int CYAN    = 7;
+final int WHITE   = 8;
+
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
 Shape currentShape;
@@ -44,20 +54,6 @@ final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
 final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE;
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
-
-final int EMPTY   = 0;
-final int RED     = 1;
-final int ORANGE  = 2;
-final int MAGENTA = 3;
-final int BLUE    = 4;
-final int GREEN   = 5;
-final int OLIVE   = 6;
-final int CYAN    = 7;
-final int WHITE   = 8;
-
-
-
-
 
 float sideSpeed = 3f;
 float dropSpeed = 0.5f;

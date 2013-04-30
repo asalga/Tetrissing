@@ -71,7 +71,7 @@ public void drawShape(IShape shape, int colPos, int rowPos){
 }
 
 public IShape getRandomShape(){
-  int randInt = getRandomInt(0, 1);
+  int randInt = getRandomInt(0, 6);
   
   if(randInt == 0) return new TeeShape();
   if(randInt == 1) return new ZeeShape();

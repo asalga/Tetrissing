@@ -9,7 +9,7 @@ Keys:
  - Up to rotate piece
  - Down to move piece down faster
 
- - P for pause 
+ - P for pause
  - Space to immediately drop piece
 
 Known Issues:
@@ -22,6 +22,7 @@ Known Issues:
  - Show next piece
  - Fix dropping piece while pause
  - Allow infinite rotate option
- - Allow forever spin feature
  - Fix moving piece faster by holding down both left and right and
    releasing one key
+ - Figure out which direction pieces should rotate
+ - Add chain reaction feature

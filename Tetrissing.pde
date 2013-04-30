@@ -1,3 +1,13 @@
+final int TEE_SHAPE = 0;
+final int EL_SHAPE = 1;
+final int EL_SHAPE2 = 2;
+final int LINE_SHAPE = 3;
+final int BOX_SHAPE = 4;
+final int ZEE_SHAPE = 5;
+final int ES_SHAPE = 6;
+
+int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
+
 IShape currentShape;
 int currShapeCol;
 int currShapeRow;
@@ -73,12 +83,14 @@ public void drawShape(IShape shape, int colPos, int rowPos){
 public IShape getRandomShape(){
   int randInt = getRandomInt(0, 6);
   
-  if(randInt == 0) return new TeeShape();
-  if(randInt == 1) return new ZeeShape();
-  if(randInt == 2) return new BoxShape();
-  if(randInt == 3) return new ElShape();
-  if(randInt == 4) return new ElShape2();
-  if(randInt == 5) return new LineShape();
+  shapeStats[randInt]++;
+  
+  if(randInt == TEE_SHAPE)  return new TeeShape();
+  if(randInt == ZEE_SHAPE)  return new ZeeShape();
+  if(randInt == BOX_SHAPE)  return new BoxShape();
+  if(randInt == EL_SHAPE)   return new ElShape();
+  if(randInt == EL_SHAPE2)  return new ElShape2();
+  if(randInt == LINE_SHAPE) return new LineShape();
   else             return new EsShape();
 }
 
@@ -368,7 +380,17 @@ public void draw(){
   
   update();
   
-  background(0);
+  if(Keyboard.isKeyDown(KEY_DOWN)){
+    pushStyle();
+    fill(0, 30);
+    noStroke();
+    rect(0,0,width, height);
+    popStyle();
+  }
+  else{
+    background(0);
+  }
+  
   //drawBackground();
   drawGrid();
   

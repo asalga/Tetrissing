@@ -11,6 +11,15 @@ boolean drawGhostPiece;
 
 boolean playerLost = false;
 
+final float TAP_LEN_IN_SEC = 0.1f;
+boolean holdingDownLeft = false;
+float moveBuffer = 0f;
+
+boolean holdingDownRight = false;
+float rightBuffer = 0f;
+
+float blocksPerSecond = 15.0f;
+
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -35,6 +44,7 @@ final int MAX_COLORS = 4;
 
 float sideSpeed = 3f;
 float dropSpeed = 0.5f;
+
 
 float timeCounter = 0;
 
@@ -153,6 +163,26 @@ public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
   return false;
 }
 
+/**
+*/
+public void moveShapeLeft(){
+  currShapeCol--;
+  
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+    currShapeCol++;
+    findGhostPiecePosition();
+  }
+}
+
+void moveShapeRight(){
+  currShapeCol++;
+  
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+    currShapeCol--;
+    findGhostPiecePosition();
+  }
+}
+    
 /*
  */
 public void update(){
@@ -175,45 +205,72 @@ public void update(){
     }
   }
   
-   if((!Keyboard.isKeyDown(KEY_LEFT)) && leftMoveTicker.getTotalTime() > 0){// && leftMoveTicker.getTotalTime() < 0.08f){
-    println("ttap: " + leftMoveTicker.getTotalTime());
-    currShapeCol--;
-    leftMoveTicker.reset();
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-      currShapeCol++;
-      findGhostPiecePosition();
-    }
+  if(Keyboard.isKeyDown(KEY_LEFT) && Keyboard.isKeyDown(KEY_RIGHT)){
+    return;
   }
-  //
-  else if(Keyboard.isKeyDown(KEY_LEFT)){
-   // println("hold: " + leftMoveTicker.getTotalTime());
+  
+  // If we just let got of the left key, but we were holding it down, make sure not
+  // to move and extra bit that the tap key condition would hit.
+  if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true && holdingDownRight == false){
+    holdingDownLeft = false;
+    leftMoveTicker.reset();
+    moveBuffer = 0f;
+  }
+  // If the key hit was a tap, nudge the piece one block
+  else if(Keyboard.isKeyDown(KEY_LEFT) == false && moveBuffer > 0f && Keyboard.isKeyDown(KEY_RIGHT) == false){
+    leftMoveTicker.reset();
+    moveBuffer = 0;
+    moveShapeLeft();
+  }
+  // If the user is holding down the left key
+  else if( Keyboard.isKeyDown(KEY_LEFT) ){
     leftMoveTicker.tick();
     
-    if(leftMoveTicker.getTotalTime() >= sideSpeed){
-      leftMoveTicker.reset();
+    moveBuffer += leftMoveTicker.getDeltaSec() * blocksPerSecond;
+     
+    // If we passed the tap threshold
+    if(leftMoveTicker.getTotalTime() >= 0.12f){
+      holdingDownLeft = true;
       
-      currShapeCol--;
-      
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-        currShapeCol++;
-        findGhostPiecePosition();
+      // Only alllow moving one block at a time to prevent the need to move
+      // back if a collision occurred.
+      if(moveBuffer > 1.0f){
+        moveBuffer -= 1.0f;
+        
+        moveShapeLeft();
       }
     }
   }
+  
     
-    
- 
-
-
-  else if(Keyboard.isKeyDown(KEY_RIGHT)){
+  // If we just let got of the left key, but we were holding it down, make sure not
+  // to move and extra bit that the tap key condition would hit.
+  if( Keyboard.isKeyDown(KEY_RIGHT) == false && holdingDownRight == true){
+    holdingDownRight = false;
+    rightMoveTicker.reset();
+    rightBuffer = 0f;
+  }
+  // If the key hit was a tap, nudge the piece one block
+  else if(Keyboard.isKeyDown(KEY_RIGHT) == false && rightBuffer > 0f){
+    rightMoveTicker.reset();
+    rightBuffer = 0;
+    moveShapeRight();
+  }
+  // If the user is holding down the left key
+  else if( Keyboard.isKeyDown(KEY_RIGHT) ){
     rightMoveTicker.tick();
-    if(rightMoveTicker.getTotalTime() >= sideSpeed){
-      currShapeCol++;
+    rightBuffer += rightMoveTicker.getDeltaSec() * blocksPerSecond;
+     
+    // If we passed the tap threshold
+    if(rightMoveTicker.getTotalTime() >= 0.12f){
+      holdingDownRight = true;
       
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-        currShapeCol--;
+      // Only alllow moving one block at a time to prevent the need to move
+      // back if a collision occurred.
+      if(rightBuffer > 1.0f){
+        rightBuffer -= 1.0f;
+        moveShapeRight();
       }
-      rightMoveTicker.reset();
     }
   }
   

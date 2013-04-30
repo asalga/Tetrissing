@@ -18,7 +18,7 @@ float moveBuffer = 0f;
 boolean holdingDownRight = false;
 float rightBuffer = 0f;
 
-float blocksPerSecond = 15.0f;
+float blocksPerSecond = 10.0f;
 
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
@@ -71,13 +71,14 @@ public void drawShape(IShape shape, int colPos, int rowPos){
 }
 
 public IShape getRandomShape(){
-  int randInt = getRandomInt(0, 5);
+  int randInt = getRandomInt(0, 1);
   
   if(randInt == 0) return new TeeShape();
   if(randInt == 1) return new ZeeShape();
   if(randInt == 2) return new BoxShape();
   if(randInt == 3) return new ElShape();
-  if(randInt == 4) return new LineShape();
+  if(randInt == 4) return new ElShape2();
+  if(randInt == 5) return new LineShape();
   else             return new EsShape();
 }
 
@@ -128,7 +129,7 @@ public void findGhostPiecePosition(){
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;
   
-  while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow) == false){
+  while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow) == 0){
     ghostShapeRow++;
   }
   
@@ -137,9 +138,13 @@ public void findGhostPiecePosition(){
   ghostShapeRow--;
 }
 
-/**
-*/
-public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
+/*
+ * 0 - no collision
+ * 1 - collision on left side of piece
+ * 2 - collision on right side of piece
+ * 3 - collision on both sides of piece
+ */
+public int checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   
@@ -156,11 +161,12 @@ public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
       }
       
       if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[c][r] != EMPTY){
-        return true;
+        return 1;
       }
     }
   }
-  return false;
+  
+  return 0;
 }
 
 /**
@@ -168,7 +174,7 @@ public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
 public void moveShapeLeft(){
   currShapeCol--;
   
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
     currShapeCol++;
     findGhostPiecePosition();
   }
@@ -177,7 +183,7 @@ public void moveShapeLeft(){
 void moveShapeRight(){
   currShapeCol++;
   
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
     currShapeCol--;
     findGhostPiecePosition();
   }
@@ -186,7 +192,7 @@ void moveShapeRight(){
 /*
  */
 public void update(){
-  dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.01f : 0.5f;
+  dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
   
   dropTicker.tick();
@@ -198,7 +204,7 @@ public void update(){
       timeCounter = 0;
       currShapeRow++;
       
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
         currShapeRow--;
         addShapeToGrid(currentShape);
       }
@@ -211,13 +217,13 @@ public void update(){
   
   // If we just let got of the left key, but we were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
-  if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true && holdingDownRight == false){
+  if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true){
     holdingDownLeft = false;
     leftMoveTicker.reset();
     moveBuffer = 0f;
   }
   // If the key hit was a tap, nudge the piece one block
-  else if(Keyboard.isKeyDown(KEY_LEFT) == false && moveBuffer > 0f && Keyboard.isKeyDown(KEY_RIGHT) == false){
+  else if(Keyboard.isKeyDown(KEY_LEFT) == false && moveBuffer > 0f){
     leftMoveTicker.reset();
     moveBuffer = 0;
     moveShapeLeft();
@@ -229,7 +235,8 @@ public void update(){
     moveBuffer += leftMoveTicker.getDeltaSec() * blocksPerSecond;
      
     // If we passed the tap threshold
-    if(leftMoveTicker.getTotalTime() >= 0.12f){
+    if(leftMoveTicker.getTotalTime() >= 0.1f){
+      println(leftMoveTicker.getTotalTime());
       holdingDownLeft = true;
       
       // Only alllow moving one block at a time to prevent the need to move
@@ -342,7 +349,7 @@ public void dropShape(){
   
   while(foundCollision == false){ 
     currShapeRow++;
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
       currShapeRow -= 1;
       addShapeToGrid(currentShape);
       foundCollision = true;
@@ -415,7 +422,7 @@ public color getColorFromID(int _color){
 public void rotateShape(){
   currentShape.rotate();
   
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
     println("collision on rotate");
     currentShape.unRotate();
   }

@@ -33,7 +33,7 @@ final int BLUE   = 3;
 final int GREEN  = 4;
 final int MAX_COLORS = 4;
 
-float sideSpeed = 0.5f;
+float sideSpeed = 3f;
 float dropSpeed = 0.5f;
 
 float timeCounter = 0;
@@ -42,6 +42,8 @@ Debugger debug;
 Ticker dropTicker;
 Ticker leftMoveTicker;
 Ticker rightMoveTicker;
+
+boolean needsMoveLeft = false;
 
 /*
  */
@@ -155,10 +157,10 @@ public boolean checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
  */
 public void update(){
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.01f : 0.5f;
-  sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.05f : 0f;
+  sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
   
   dropTicker.tick();
-    
+  
   if(dropTicker.getTotalTime() >= dropSpeed){
     dropTicker.reset();
     
@@ -173,20 +175,34 @@ public void update(){
     }
   }
   
-  // If the left key is down, 
-  if(Keyboard.isKeyDown(KEY_LEFT)){
+   if((!Keyboard.isKeyDown(KEY_LEFT)) && leftMoveTicker.getTotalTime() > 0){// && leftMoveTicker.getTotalTime() < 0.08f){
+    println("ttap: " + leftMoveTicker.getTotalTime());
+    currShapeCol--;
+    leftMoveTicker.reset();
+    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+      currShapeCol++;
+      findGhostPiecePosition();
+    }
+  }
+  //
+  else if(Keyboard.isKeyDown(KEY_LEFT)){
+   // println("hold: " + leftMoveTicker.getTotalTime());
     leftMoveTicker.tick();
     
     if(leftMoveTicker.getTotalTime() >= sideSpeed){
+      leftMoveTicker.reset();
+      
       currShapeCol--;
       
       if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
         currShapeCol++;
         findGhostPiecePosition();
       }
-      leftMoveTicker.reset();
     }
   }
+    
+    
+ 
 
 
   else if(Keyboard.isKeyDown(KEY_RIGHT)){
@@ -225,7 +241,7 @@ public void addShapeToGrid(IShape shape){
   
   currentShape = getRandomShape();
   currShapeRow = 0;
-  currShapeCol = 4;
+  currShapeCol = 14;
 }
 
 /* Start from the bottom row. If we found a full line,

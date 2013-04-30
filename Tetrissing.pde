@@ -45,8 +45,8 @@ float blocksPerSecond = 10.0f;
 int numLines;
 int numTetrises;
 
-int NUM_ROWS = 20;
-int NUM_COLS = 20;
+int NUM_ROWS = 25 + 1;
+int NUM_COLS = 10 + 2;
 
 int BOX_SIZE = 16;
 
@@ -63,9 +63,14 @@ Ticker dropTicker;
 Ticker leftMoveTicker;
 Ticker rightMoveTicker;
 
-// Features to be implemented
+// Allows player to keep rotating piece even if it fell
 boolean allowInfiniteRotation = false;
+
+// If kickback is true, players can rotate pieces even if flush against
+// walls and piece should not be able to rotate otherwise.
 boolean allowKickBack= true;
+
+//
 boolean allowChainReactions = false;
 
 /*
@@ -166,6 +171,10 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   // Iterate over the shape
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
+     
+      //if(shapeCol + c >= NUM_COLS){
+      //  continue;
+      //}
       
       if(shapeCol + c < 0){
         continue;
@@ -174,6 +183,7 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
       if(shapeRow + r >= NUM_ROWS){
         continue;
       }
+   
       
       if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[c][r] != EMPTY){
         return 1;
@@ -307,6 +317,8 @@ public void addShapeToGrid(Shape shape){
   int shapeSize = shape.getSize();
   int col = shape.getColor();
   
+  
+  
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       if(arr[c][r] != EMPTY){
@@ -319,7 +331,7 @@ public void addShapeToGrid(Shape shape){
   
   currentShape = getRandomShape();
   currShapeRow = 0;
-  currShapeCol = 14;
+  currShapeCol = NUM_COLS/2;
 }
 
 /* Start from the bottom row. If we found a full line,
@@ -394,6 +406,8 @@ public void draw(){
   }
   
   //drawBackground();
+  
+  drawBorders();
   drawGrid();
   
   findGhostPiecePosition();
@@ -426,7 +440,8 @@ public void drawCurrShape(){
   pushStyle();
   color _col = getColorFromID(currentShape.getColor());
   fill(_col);
-  stroke(0);
+  stroke(255);
+  strokeWeight(1);
   drawShape(currentShape, currShapeCol, currShapeRow);
   popStyle();
 }
@@ -481,12 +496,35 @@ public void postRender(){
   debug.clear();
 }
 
+/**
+ * Iterate from 1 to NUM_COLS-1 because we don't want to draw the borders.
+ * Same goes for not drawing the last row.
+ */
 public void drawGrid(){
-  for(int cols = 0; cols < NUM_COLS; cols++){
-    for(int rows = 0; rows < NUM_ROWS; rows++){
+  for(int cols = 1; cols < NUM_COLS-1; cols++){
+    for(int rows = 0; rows < NUM_ROWS-1; rows++){
       drawBox(cols, rows, grid[cols][rows]);
     }
   }
+}
+
+public void drawBorders(){
+  pushStyle();
+  noStroke();
+  fill(128);
+  
+  for(int col = 0; col < NUM_COLS; col++){
+    rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+  }
+  
+  for(int row = 0; row < NUM_ROWS; row++){
+    rect(0, row * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+  }
+
+  for(int row = 0; row < NUM_ROWS; row++){
+    rect((NUM_COLS-1) * BOX_SIZE, row * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+  }
+  popStyle();
 }
 
 public void drawBox(int col, int row, int _color){

@@ -26,3 +26,4 @@ Known Issues:
    releasing one key
  - Figure out which direction pieces should rotate
  - Add chain reaction feature
+ - Make makefile

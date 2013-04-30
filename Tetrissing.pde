@@ -67,8 +67,10 @@ Ticker dropTicker;
 Ticker leftMoveTicker;
 Ticker rightMoveTicker;
 
+// Features to be implemented
 boolean allowInfiniteRotation = false;
 boolean allowKickBack= true;
+boolean allowChainReactions = false;
 
 /*
  */

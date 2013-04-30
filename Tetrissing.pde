@@ -1,14 +1,14 @@
-final int TEE_SHAPE = 0;
-final int EL_SHAPE = 1;
-final int EL_SHAPE2 = 2;
-final int LINE_SHAPE = 3;
-final int BOX_SHAPE = 4;
-final int ZEE_SHAPE = 5;
-final int ES_SHAPE = 6;
+final int T_SHAPE = 0;
+final int L_SHAPE = 1;
+final int J_SHAPE = 2;
+final int I_SHAPE = 3;
+final int O_SHAPE = 4;
+final int Z_SHAPE = 5;
+final int S_SHAPE = 6;
 
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
-IShape currentShape;
+Shape currentShape;
 int currShapeCol;
 int currShapeRow;
 
@@ -45,29 +45,34 @@ final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE;
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
-final int EMPTY  = 0;
-final int WHITE  = 1;
-final int RED    = 2;
-final int BLUE   = 3;
-final int GREEN  = 4;
-final int MAX_COLORS = 4;
+final int EMPTY   = 0;
+final int RED     = 1;
+final int ORANGE  = 2;
+final int MAGENTA = 3;
+final int BLUE    = 4;
+final int GREEN   = 5;
+final int OLIVE   = 6;
+final int CYAN    = 7;
+final int WHITE   = 8;
+
+
+
+
 
 float sideSpeed = 3f;
 float dropSpeed = 0.5f;
-
-
-float timeCounter = 0;
 
 Debugger debug;
 Ticker dropTicker;
 Ticker leftMoveTicker;
 Ticker rightMoveTicker;
 
-boolean needsMoveLeft = false;
+boolean allowInfiniteRotation = false;
+boolean allowKickBack= true;
 
 /*
  */
-public void drawShape(IShape shape, int colPos, int rowPos){
+public void drawShape(Shape shape, int colPos, int rowPos){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
     
@@ -80,18 +85,18 @@ public void drawShape(IShape shape, int colPos, int rowPos){
   }
 }
 
-public IShape getRandomShape(){
+public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
   
   shapeStats[randInt]++;
   
-  if(randInt == TEE_SHAPE)  return new TeeShape();
-  if(randInt == ZEE_SHAPE)  return new ZeeShape();
-  if(randInt == BOX_SHAPE)  return new BoxShape();
-  if(randInt == EL_SHAPE)   return new ElShape();
-  if(randInt == EL_SHAPE2)  return new ElShape2();
-  if(randInt == LINE_SHAPE) return new LineShape();
-  else             return new EsShape();
+  if(randInt == T_SHAPE) return new TShape();
+  if(randInt == Z_SHAPE) return new ZShape();
+  if(randInt == O_SHAPE) return new OShape();
+  if(randInt == L_SHAPE) return new LShape();
+  if(randInt == J_SHAPE) return new JShape();
+  if(randInt == I_SHAPE) return new IShape();
+  else             return new SShape();
 }
 
 public void setup(){
@@ -156,7 +161,7 @@ public void findGhostPiecePosition(){
  * 2 - collision on right side of piece
  * 3 - collision on both sides of piece
  */
-public int checkShapeCollision(IShape shape, int shapeCol, int shapeRow){
+public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   
@@ -213,7 +218,6 @@ public void update(){
     dropTicker.reset();
     
     if(currentShape != null){
-      timeCounter = 0;
       currShapeRow++;
       
       if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
@@ -300,7 +304,7 @@ public void update(){
 /*
 * 
 */
-public void addShapeToGrid(IShape shape){
+public void addShapeToGrid(Shape shape){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   int col = shape.getColor();
@@ -432,13 +436,15 @@ public void drawCurrShape(){
 
 /*
  */
-public color getColorFromID(int _color){
-  
-  if(_color == RED)   return color(255, 0,   0);
-  if(_color == GREEN) return color(0,   255, 0);
-  if(_color == BLUE)  return color(0,   0,   255);
-  if(_color == WHITE) return color(255, 255, 255);
-  else                return color(128);
+public color getColorFromID(int col){
+  if(col == RED)    { return color(#FF0000); }
+  if(col == ORANGE) { return color(#FFA500); }
+  if(col == MAGENTA){ return color(#FF00FF); }
+  if(col == BLUE)   { return color(#0000FF); }
+  if(col == GREEN)  { return color(#00FF00); }
+  if(col == OLIVE)  { return color(#808000); }
+  if(col == CYAN)   { return color(#00FFFF); }
+  else              { return color(#FFFFFF); }
 }
 
 public void rotateShape(){

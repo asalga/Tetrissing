@@ -16,6 +16,9 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
+
+PImage img;
+
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
 Shape currentShape;
@@ -27,7 +30,6 @@ boolean upKeyState = false;
 //
 int ghostShapeCol;
 int ghostShapeRow;
-boolean drawGhostPiece;
 
 boolean playerLost = false;
 
@@ -63,15 +65,16 @@ Ticker dropTicker;
 Ticker leftMoveTicker;
 Ticker rightMoveTicker;
 
-// Allows player to keep rotating piece even if it fell
+
+// --- FEATURES ---
+// InfiniteRotation - Allows player to keep rotating piece even if it fell
+// kickback - If true, players can rotate pieces even if flush against wall.
+
 boolean allowInfiniteRotation = false;
-
-// If kickback is true, players can rotate pieces even if flush against
-// walls and piece should not be able to rotate otherwise.
 boolean allowKickBack= true;
-
-//
 boolean allowChainReactions = false;
+boolean allowDrawingGhost = true;
+
 
 /*
  */
@@ -103,17 +106,21 @@ public Shape getRandomShape(){
 }
 
 public void setup(){
-  size(BOARD_W_IN_PX, BOARD_H_IN_PX);
+  size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
+  
+  img = loadImage("cloud1.png");
   
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
   
-  Keyboard.lockKeys(new int[]{KEY_P});
+  // P = pause
+  // G = ghost
+  // 
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G});
   
   numLines = 0;
-  drawGhostPiece = true;
    
   for(int c = 0; c < NUM_COLS; c++){
     for(int r = 0; r < NUM_ROWS; r++){
@@ -146,6 +153,10 @@ public void createBorders(){
  * keep going down until we find a collision.
  */
 public void findGhostPiecePosition(){
+  if(allowDrawingGhost == false){
+    return;
+  }
+  
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;
   
@@ -201,7 +212,6 @@ public void moveShapeLeft(){
   
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
     currShapeCol++;
-    findGhostPiecePosition();
   }
 }
 
@@ -210,7 +220,6 @@ void moveShapeRight(){
   
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
     currShapeCol--;
-    findGhostPiecePosition();
   }
 }
     
@@ -234,6 +243,8 @@ public void update(){
       }
     }
   }
+  
+  allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
   
   if(Keyboard.isKeyDown(KEY_LEFT) && Keyboard.isKeyDown(KEY_RIGHT)){
     return;
@@ -305,6 +316,8 @@ public void update(){
     }
   }
   
+  findGhostPiecePosition();
+      
   debug.addString("      FPS:" + (int)frameRate);
   debug.addString("      Lines:" + numLines);
 }
@@ -349,7 +362,6 @@ public void removeFilledLines(){
     }
     
     if(isFull){
-      println("found full: " + row);
       numLines++;
       moveAllRowsDown(row);
       
@@ -388,6 +400,7 @@ public int getRandomInt(int minVal, int maxVal) {
 }
 
 public void draw(){
+  
   if(Keyboard.isKeyDown(KEY_P) ){
     return;
   }
@@ -409,6 +422,7 @@ public void draw(){
   
   drawBorders();
   drawGrid();
+  image(img, 0, 0);
   
   findGhostPiecePosition();
   drawGhostPiece();
@@ -426,6 +440,11 @@ public void draw(){
 /* For cheaters
  */
 public void drawGhostPiece(){
+  if(allowDrawingGhost == false){
+    return;
+  }
+  println("test: " + frameRate);
+
   pushStyle();
   color col = getColorFromID(currentShape.getColor());
   

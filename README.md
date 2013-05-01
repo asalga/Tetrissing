@@ -27,3 +27,4 @@ Known Issues:
  - Figure out which direction pieces should rotate
  - Add chain reaction feature
  - Make makefile
+ - Fix drawing drop streak

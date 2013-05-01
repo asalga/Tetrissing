@@ -180,9 +180,10 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
      
-      //if(shapeCol + c >= NUM_COLS){
-      //  continue;
-      //}
+      // An IShape could trigger an out of bounds exception.
+      if(shapeCol + c >= NUM_COLS){
+        continue;
+      }
       
       if(shapeCol + c < 0){
         continue;
@@ -416,7 +417,7 @@ public void draw(){
     background(0);
   }
   
-  drawBackground();
+  //drawBackground();
   
   drawBorders();
   drawGrid();

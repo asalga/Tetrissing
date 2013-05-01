@@ -2,11 +2,21 @@ public class TShape implements Shape{
   
   int[][] shape;
   int state;
+  int spacesOnRight;
+  int spacesOnLeft;
   
   TShape(){
-    shape = new int[3][3];
+    shape = null;
     state = 0;
     changeShape();
+  }
+  
+  public int getEmptySpacesOnRight(){
+    return spacesOnRight;
+  }
+  
+  public int getEmptySpacesOnLeft(){
+    return spacesOnRight;
   }
   
   public int[][] getArr(){
@@ -41,24 +51,36 @@ public class TShape implements Shape{
   
   public void changeShape(){
     if(state == 0){
-      shape[0] = new int[]{0, 1, 0};
-      shape[1] = new int[]{1, 1, 0};
-      shape[2] = new int[]{0, 1, 0};
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 1, 0},
+                            {1, 1, 1},
+                            {0, 0, 0}
+                          };
     }
     else if(state == 1){
-      shape[0] = new int[]{0, 1, 0};
-      shape[1] = new int[]{1, 1, 1};
-      shape[2] = new int[]{0, 0, 0};
+      spacesOnRight = 0;
+      spacesOnLeft = 1;
+      shape = new int[][] { {0, 1, 0},
+                            {0, 1, 1},
+                            {0, 1, 0}
+                          };
     }
     else if(state == 2){
-      shape[0] = new int[]{0, 1, 0};
-      shape[1] = new int[]{0, 1, 1};
-      shape[2] = new int[]{0, 1, 0};
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 0},
+                            {1, 1, 1},
+                            {0, 1, 0}
+                          };
     }
     else{
-      shape[0] = new int[]{0, 0, 0};
-      shape[1] = new int[]{1, 1, 1};
-      shape[2] = new int[]{0, 1, 0};
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 1, 0},
+                            {1, 1, 0},
+                            {0, 1, 0}
+                          };
     }
   }
 }

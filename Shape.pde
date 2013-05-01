@@ -8,4 +8,7 @@ public interface Shape{
   
   public int getColor();
   public int getSize();
+  
+  public int getEmptySpacesOnRight();
+  public int getEmptySpacesOnLeft();
 }

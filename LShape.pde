@@ -2,6 +2,8 @@ public class LShape implements Shape{
   
   int[][] shape;
   int state;
+  int spacesOnRight;
+  int spacesOnLeft;
   
   LShape(){
     shape = new int[3][3];
@@ -9,6 +11,14 @@ public class LShape implements Shape{
     changeShape();
   }
   
+  public int getEmptySpacesOnRight(){
+    return spacesOnRight;
+  }
+
+  public int getEmptySpacesOnLeft(){
+    return spacesOnLeft;
+  }
+
   public int[][] getArr(){
     return shape;
   }
@@ -40,24 +50,36 @@ public class LShape implements Shape{
   
   public void changeShape(){
     if(state == 0){
-      shape[0] = new int[]{0, 0, 0};
-      shape[1] = new int[]{1, 1, 1};
-      shape[2] = new int[]{0, 0, 1};
+      spacesOnRight = 0;
+      spacesOnLeft = 1;
+      shape = new int[][] { {0, 1, 0},
+                            {0, 1, 0},
+                            {0, 1, 1}
+                          };
     }
     else if(state == 1){
-      shape[0] = new int[]{0, 1, 0};
-      shape[1] = new int[]{0, 1, 0};
-      shape[2] = new int[]{1, 1, 0};
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 1},
+                            {1, 1, 1},
+                            {0, 0, 0}
+                          };
     }
     else if(state == 2){
-      shape[0] = new int[]{1, 0, 0};
-      shape[1] = new int[]{1, 1, 1};
-      shape[2] = new int[]{0, 0, 0};
+      spacesOnRight = 1;
+      spacesOnLeft = 0;
+      shape = new int[][] { {1, 1, 0},
+                            {0, 1, 0},
+                            {0, 1, 0}
+                          };
     }
     else if(state == 3){
-      shape[0] = new int[]{0, 1, 1};
-      shape[1] = new int[]{0, 1, 0};
-      shape[2] = new int[]{0, 1, 0};
+      spacesOnLeft = 0;
+      spacesOnRight = 0;
+      shape = new int[][] { {0, 0, 0},
+                            {1, 1, 1},
+                            {1, 0, 0}
+                          };
     }
   }
 }

@@ -16,14 +16,13 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
-
-PImage img;
-
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
 Shape currentShape;
 int currShapeCol;
 int currShapeRow;
+
+//Queue nextPieceQueue
 
 boolean upKeyState = false;
 
@@ -47,8 +46,8 @@ float blocksPerSecond = 10.0f;
 int numLines;
 int numTetrises;
 
-int NUM_ROWS = 25 + 1;
-int NUM_COLS = 10 + 2;
+int NUM_ROWS = 35 + 1;
+int NUM_COLS = 20 + 2;
 
 int BOX_SIZE = 16;
 
@@ -84,7 +83,9 @@ public void drawShape(Shape shape, int colPos, int rowPos){
     
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
-      if(arr[c][r] != 0){
+      
+      // Transposing here!
+      if(arr[r][c] != 0){
         rect((c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE), BOX_SIZE, BOX_SIZE);
       }
     }
@@ -97,9 +98,9 @@ public Shape getRandomShape(){
   shapeStats[randInt]++;
   
   if(randInt == T_SHAPE) return new TShape();
+  if(randInt == L_SHAPE) return new LShape();
   if(randInt == Z_SHAPE) return new ZShape();
   if(randInt == O_SHAPE) return new OShape();
-  if(randInt == L_SHAPE) return new LShape();
   if(randInt == J_SHAPE) return new JShape();
   if(randInt == I_SHAPE) return new IShape();
   else             return new SShape();
@@ -108,8 +109,6 @@ public Shape getRandomShape(){
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
-  
-  img = loadImage("cloud1.png");
   
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
@@ -171,9 +170,7 @@ public void findGhostPiecePosition(){
 
 /*
  * 0 - no collision
- * 1 - collision on left side of piece
- * 2 - collision on right side of piece
- * 3 - collision on both sides of piece
+ * 1 - collision
  */
 public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   int[][] arr = shape.getArr();
@@ -195,8 +192,8 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
         continue;
       }
    
-      
-      if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[c][r] != EMPTY){
+      // Transposed here!
+      if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[r][c] != EMPTY){
         return 1;
       }
     }
@@ -271,7 +268,6 @@ public void update(){
      
     // If we passed the tap threshold
     if(leftMoveTicker.getTotalTime() >= 0.1f){
-      println(leftMoveTicker.getTotalTime());
       holdingDownLeft = true;
       
       // Only alllow moving one block at a time to prevent the need to move
@@ -334,7 +330,9 @@ public void addShapeToGrid(Shape shape){
   
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
-      if(arr[c][r] != EMPTY){
+      
+      // Transposing here!
+      if(arr[r][c] != EMPTY){
         grid[currShapeCol + c][currShapeRow + r] = col;
       }
     }
@@ -411,18 +409,17 @@ public void draw(){
     pushStyle();
     fill(0, 30);
     noStroke();
-    rect(0,0,width, height);
+    rect(0, 0, width, height);
     popStyle();
   }
   else{
     background(0);
   }
   
-  //drawBackground();
+  drawBackground();
   
   drawBorders();
   drawGrid();
-  image(img, 0, 0);
   
   findGhostPiecePosition();
   drawGhostPiece();
@@ -443,8 +440,7 @@ public void drawGhostPiece(){
   if(allowDrawingGhost == false){
     return;
   }
-  println("test: " + frameRate);
-
+  
   pushStyle();
   color col = getColorFromID(currentShape.getColor());
   
@@ -479,13 +475,63 @@ public color getColorFromID(int col){
   else              { return color(#FFFFFF); }
 }
 
+/*
+ *
+ */
 public void rotateShape(){
+
   currentShape.rotate();
+      
+      //
+      //
+      //
+  int pos = currShapeCol;  
+  int size = currentShape.getSize();
+  int emptyRightSpaces = currentShape.getEmptySpacesOnRight();
+  int emptyLeftSpaces = currentShape.getEmptySpacesOnLeft();
   
+  int amountToShiftLeft = pos + size - emptyRightSpaces - (NUM_COLS-1);
+  int amountToShiftRight = (pos - emptyLeftSpaces) + 1;
+  
+  println("pos: " + pos);
+  println("amountToShiftLeft: " + amountToShiftLeft);
+  
+  println("amountToShiftRight: " + amountToShiftRight);
+  
+  // If one part of the piece is touching the right border
+  if(pos < 3 && amountToShiftRight > 0){
+    currShapeCol += amountToShiftRight;
+
+    // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
+    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+      currShapeCol -= amountToShiftLeft;
+    }
+  }
+  
+   if( pos > 8 && amountToShiftLeft > 0){
+  //else if(pos < 0 || pos - emptyLeftSpaces < 0 ){
+  //amountToShiftRight > 0){   
+    currShapeCol -= amountToShiftLeft;
+
+    // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
+    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+      currShapeCol += amountToShiftLeft;
+    }
+  }
+
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-    println("collision on rotate");
+    println("undoing rotation");
     currentShape.unRotate();
   }
+  
+  // If rotating the piece will result in a collision against the wall
+  //if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0 &&  ){
+  //}
+  
+  // move the piece away from the wall and try rotating again
+  
+  // if that fails, undo transformations.
+  
 }
     
 public void keyPressed(){

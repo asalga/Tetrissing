@@ -2,9 +2,17 @@ public class OShape implements Shape{
   int[][] shape;
   
   OShape(){
-    shape = new int[2][2];
-    shape[0] = new int[]{1, 1};
-    shape[1] = new int[]{1, 1};
+    shape = new int[][]{{1, 1},
+                        {1, 1}};
+  }
+  
+  // This shape is perfectly packed tight, there is no empty space
+  public int getEmptySpacesOnRight(){
+    return 0;
+  }
+
+  public int getEmptySpacesOnLeft(){
+    return 0;
   }
   
   public int[][] getArr(){

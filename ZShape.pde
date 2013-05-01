@@ -2,11 +2,21 @@ public class ZShape implements Shape{
   
   int[][] shape;
   int state;
+  int spacesOnRight;
+  int spacesOnLeft;
   
   ZShape(){
-    shape = new int[3][3];
+    shape = null;
     state = 0;
     changeShape();
+  }
+  
+  public int getEmptySpacesOnRight(){
+    return spacesOnRight;
+  }
+  
+  public int getEmptySpacesOnLeft(){
+    return spacesOnLeft;
   }
   
   public int[][] getArr(){
@@ -41,14 +51,20 @@ public class ZShape implements Shape{
   
   public void changeShape(){
     if(state == 0){
-      shape[0] = new int[]{1, 1, 0};
-      shape[1] = new int[]{0, 1, 1};
-      shape[2] = new int[]{0, 0, 0};
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][]{ {1, 1, 0},
+                           {0, 1, 1},
+                           {0, 0, 0}
+                          };
     }
     else if(state == 1){
-      shape[0] = new int[]{0, 1, 0};
-      shape[1] = new int[]{1, 1, 0};
-      shape[2] = new int[]{1, 0, 0};
+      spacesOnRight = 1;
+      spacesOnLeft = 0;
+      shape = new int[][]{ {0, 1, 0},
+                           {1, 1, 0},
+                           {1, 0, 0}
+                          };
     }
   }
 }

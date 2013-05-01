@@ -13,8 +13,7 @@ Keys:
  - Space to immediately drop piece
 
 Known Issues:
- - Pieces can't be rotated next to walls sometimes
- - Side and bottom walls need to be removed
+ - Make good UI
  - User can slide piece along floor
  - Add animation on line clear
  - Add losing condition

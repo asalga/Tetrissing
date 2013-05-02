@@ -34,6 +34,7 @@ int ghostShapeCol;
 int ghostShapeRow;
 
 boolean playerLost = false;
+boolean hasLostGame = false;
 
 final float TAP_LEN_IN_SEC = 0.1f;
 boolean holdingDownLeft = false;
@@ -55,7 +56,7 @@ int NUM_COLS = 10 + 2;
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + 30;
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4); // 30
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -133,12 +134,16 @@ public void setup(){
       grid[c][r] = EMPTY;
     }
   }
+
+  createPiece();
    
-  currentShape = getRandomShape();
-  currShapeRow = 0;
-  currShapeCol = 4;
- 
   createBorders();
+}
+
+public void createPiece(){
+  currentShape = getRandomShape();
+  currShapeRow = -currentShape.getSize();
+  currShapeCol = 4;
 }
 
 public void createBorders(){
@@ -199,6 +204,11 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
       if(shapeRow + r >= NUM_ROWS){
         continue;
       }
+      
+      // Shape starts out out of the grid bounds.
+      if(shapeRow + r < 0){
+        continue;
+      }
    
       // Transposed here!
       if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[r][c] != EMPTY){
@@ -248,6 +258,10 @@ public void update(){
       if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
         currShapeRow--;
         addShapeToGrid(currentShape);
+      }else{
+        if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) == 1 && currShapeRow < 0){
+          exit();
+        }
       }
     }
   }
@@ -342,8 +356,12 @@ public void addShapeToGrid(Shape shape){
   int shapeSize = shape.getSize();
   int col = shape.getColor();
   
+  if(currShapeRow < 0){
+    hasLostGame = true;
+    return;
+  }
   
-  
+    
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -356,9 +374,7 @@ public void addShapeToGrid(Shape shape){
   
   removeFilledLines();
   
-  currentShape = getRandomShape();
-  currShapeRow = 0;
-  currShapeCol = NUM_COLS/2;
+  createPiece();
 }
 
 /* Start from the bottom row. If we found a full line,
@@ -415,50 +431,55 @@ public int getRandomInt(int minVal, int maxVal) {
 
 public void draw(){
   
-  
-  if(Keyboard.isKeyDown(KEY_P) ){
-    return;
+  if(hasLostGame){
+    exit();
   }
   
-  update();
-  
-  /*if(allowFadeEffect){
-    pushStyle();
-    fill(0, 32);
-    noStroke();
-    rect(0, 0, width, height);
-    popStyle();  
-  }
   else{
-    background(0);
-  }*/
+    if(Keyboard.isKeyDown(KEY_P) ){
+      return;
+    }
+    
+    update();
+    
+    if(allowFadeEffect){
+      pushStyle();
+      fill(0, 32);
+      noStroke();
+      rect(0, 0, width, height);
+      popStyle();  
+    }
+    else{
+      background(0);
+    }
+    
+    image(background, 0, 0);
+    
+    translate(0, BOX_SIZE * 2);
+    //translate(0, -8);
+    drawBorders();
+    
+    translate(0, 14);
+    //drawBackground();
+    
+    
+    drawGrid();
+    
+    findGhostPiecePosition();
+    drawGhostPiece();
   
-  image(background, 0, 0);
-  
-  
-  translate(0, -8);
-  drawBorders();
-  
-  translate(0, 14);
-  //drawBackground();
-  
-  
-  drawGrid();
-  
-  findGhostPiecePosition();
-  drawGhostPiece();
-
-  drawCurrShape();
- 
-  pushMatrix();
-  translate(200, 40);
-  pushStyle();
-  stroke(255);
-  debug.draw();
-  popStyle();
-  popMatrix();
-  
-  postRender();
+    drawCurrShape();
+   
+    pushMatrix();
+    translate(200, 40);
+    pushStyle();
+    stroke(255);
+    debug.draw();
+    popStyle();
+    popMatrix();
+    
+    postRender();
+  }
 }
 
 /* For cheaters

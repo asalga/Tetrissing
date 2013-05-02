@@ -16,7 +16,6 @@ Known Issues:
  - Make good UI
  - User can slide piece along floor
  - Add animation on line clear
- - Add losing condition
  - Add audio
  - Show next piece
  - Fix dropping piece while pause

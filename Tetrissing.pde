@@ -26,7 +26,7 @@ int currShapeRow;
 
 //Queue nextPieceQueue
 
-PImage background;
+PImage backgroundImg;
 boolean upKeyState = false;
 
 //
@@ -115,7 +115,7 @@ public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
   
-  background = loadImage("images/background.jpg");
+  backgroundImg = loadImage("images/background.jpg");
   
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
@@ -453,7 +453,7 @@ public void draw(){
       background(0);
     }
     
-    image(background, 0, 0);
+    image(backgroundImg, 0, 0);
     
     translate(0, BOX_SIZE * 2);
     //translate(0, -8);

@@ -26,6 +26,7 @@ int currShapeRow;
 
 //Queue nextPieceQueue
 
+PImage background;
 boolean upKeyState = false;
 
 //
@@ -33,6 +34,7 @@ int ghostShapeCol;
 int ghostShapeRow;
 
 boolean playerLost = false;
+boolean hasLostGame = false;
 
 final float TAP_LEN_IN_SEC = 0.1f;
 boolean holdingDownLeft = false;
@@ -48,13 +50,13 @@ float blocksPerSecond = 10.0f;
 int numLines;
 int numTetrises;
 
-int NUM_ROWS = 25 + 1;
+int NUM_ROWS = 22 + 1;
 int NUM_COLS = 10 + 2;
 
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE;
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4); // 30
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -75,6 +77,7 @@ boolean allowInfiniteRotation = false;
 boolean allowKickBack= true;
 boolean allowChainReactions = false;
 boolean allowDrawingGhost = true;
+boolean allowFadeEffect = true;
 
 
 /*
@@ -109,8 +112,10 @@ public Shape getRandomShape(){
 }
 
 public void setup(){
-  size(BOARD_W_IN_PX, BOARD_H_IN_PX);
+  size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
+  
+  background = loadImage("images/background.jpg");
   
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
@@ -118,7 +123,9 @@ public void setup(){
   
   // P = pause
   // G = ghost
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G});
+  // F = fade
+  // K = kickback
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K});
   
   numLines = 0;
    
@@ -127,12 +134,16 @@ public void setup(){
       grid[c][r] = EMPTY;
     }
   }
+
+  createPiece();
    
-  currentShape = getRandomShape();
-  currShapeRow = 0;
-  currShapeCol = 4;
- 
   createBorders();
+}
+
+public void createPiece(){
+  currentShape = getRandomShape();
+  currShapeRow = -currentShape.getSize();
+  currShapeCol = 4;
 }
 
 public void createBorders(){
@@ -193,6 +204,11 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
       if(shapeRow + r >= NUM_ROWS){
         continue;
       }
+      
+      // Shape starts out out of the grid bounds.
+      if(shapeRow + r < 0){
+        continue;
+      }
    
       // Transposed here!
       if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[r][c] != EMPTY){
@@ -225,8 +241,11 @@ void moveShapeRight(){
 /*
  */
 public void update(){
+  
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
+  allowFadeEffect = Keyboard.isKeyDown(KEY_F);
+  allowKickBack = Keyboard.isKeyDown(KEY_K);
   
   dropTicker.tick();
   
@@ -239,6 +258,10 @@ public void update(){
       if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
         currShapeRow--;
         addShapeToGrid(currentShape);
+      }else{
+        if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) == 1 && currShapeRow < 0){
+          exit();
+        }
       }
     }
   }
@@ -315,9 +338,14 @@ public void update(){
   }
   
   findGhostPiecePosition();
-      
-  debug.addString("      FPS:" + (int)frameRate);
-  debug.addString("      Lines:" + numLines);
+  
+  debug.addString("FPS:" + (int)frameRate);
+  debug.addString("Lines:" + numLines);
+  debug.addString("----------------");
+  debug.addString("F - toggle Fade effect");
+  debug.addString("G - toggle Ghost piece");
+  debug.addString("K - toggle Kick back");
+  debug.addString("P - pause game");
 }
 
 /*
@@ -328,8 +356,12 @@ public void addShapeToGrid(Shape shape){
   int shapeSize = shape.getSize();
   int col = shape.getColor();
   
+  if(currShapeRow < 0){
+    hasLostGame = true;
+    return;
+  }
   
-  
+    
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -342,9 +374,7 @@ public void addShapeToGrid(Shape shape){
   
   removeFilledLines();
   
-  currentShape = getRandomShape();
-  currShapeRow = 0;
-  currShapeCol = NUM_COLS/2;
+  createPiece();
 }
 
 /* Start from the bottom row. If we found a full line,
@@ -401,39 +431,55 @@ public int getRandomInt(int minVal, int maxVal) {
 
 public void draw(){
   
-  if(Keyboard.isKeyDown(KEY_P) ){
-    return;
+  if(hasLostGame){
+    exit();
   }
   
-  update();
-  
-  if(Keyboard.isKeyDown(KEY_DOWN)){
-    pushStyle();
-    fill(0, 30);
-    noStroke();
-    rect(0, 0, width, height);
-    popStyle();
-  }
   else{
-    background(0);
-  }
-  
-  //drawBackground();
-  
-  drawBorders();
-  drawGrid();
-  
-  findGhostPiecePosition();
-  drawGhostPiece();
-
-  drawCurrShape();
+    if(Keyboard.isKeyDown(KEY_P) ){
+      return;
+    }
     
-  pushStyle();
-  stroke(255);
-  debug.draw();
-  popStyle();
+    update();
+    
+    if(allowFadeEffect){
+      pushStyle();
+      fill(0, 32);
+      noStroke();
+      rect(0, 0, width, height);
+      popStyle();  
+    }
+    else{
+      background(0);
+    }
+    
+    image(background, 0, 0);
+    
+    translate(0, BOX_SIZE * 2);
+    //translate(0, -8);
+    drawBorders();
+    
+    translate(0, 14);
+    //drawBackground();
+    
+    
+    drawGrid();
+    
+    findGhostPiecePosition();
+    drawGhostPiece();
   
-  postRender();
+    drawCurrShape();
+   
+    pushMatrix();
+    translate(200, 40);
+    pushStyle();
+    stroke(255);
+    debug.draw();
+    popStyle();
+    popMatrix();
+    
+    postRender();
+  }
 }
 
 /* For cheaters
@@ -498,35 +544,40 @@ public void rotateShape(){
   if(DEBUG){
     println("pos: " + pos);
     println("amountToShiftLeft: " + amountToShiftLeft);
+  
     println("amountToShiftRight: " + amountToShiftRight);
     println("emptyLeftSpaces: " + emptyLeftSpaces);
   }
   
-  // TODO: fix this hack
-  // If one part of the piece is touching the right border
-  if(amountToShiftRight > 0 && pos <= 0){
-    currShapeCol += amountToShiftRight;
-
-    // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-      currShapeCol -= amountToShiftLeft;
-    }
-  }
+  if(allowKickBack){
+    // TODO: fix this hack
+    // If one part of the piece is touching the right border
+    if(amountToShiftRight > 0 && pos <= 0){
+      currShapeCol += amountToShiftRight;
   
-   if(amountToShiftLeft > 0 ){   
-    currShapeCol -= amountToShiftLeft;
-
-    // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-      currShapeCol += amountToShiftLeft;
+      // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+        currShapeCol -= amountToShiftLeft;
+      }
+    }
+    
+    if(amountToShiftLeft > 0 ){
+      currShapeCol -= amountToShiftLeft;
+  
+      // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+        currShapeCol += amountToShiftLeft;
+      }
     }
   }
-
+    
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
     currentShape.unRotate();
   }
 }
-    
+
+/*
+ */
 public void keyPressed(){
   
   if(keyCode == KEY_UP && upKeyState == false){
@@ -569,10 +620,11 @@ public void drawGrid(){
 public void drawBorders(){
   pushStyle();
   noStroke();
-  fill(128);
+  fill(0);
   
+  // Floor
   for(int col = 0; col < NUM_COLS; col++){
-    rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+    //rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
   
   for(int row = 0; row < NUM_ROWS; row++){
@@ -657,77 +709,6 @@ class Debugger{
   }
 }
 
-public class IShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
-  
-  IShape(){
-    shape = null;
-    state = 0;
-    changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 4;
-  }
-  
-  public int getColor(){
-    return RED;
-  }
-  
-  public void changeShape(){
-    if(state == 0){
-      spacesOnRight = 2;
-      spacesOnLeft = 1;
-      shape = new int[][] { {0, 1, 0, 0},
-                            {0, 1, 0, 0},
-                            {0, 1, 0, 0},
-                            {0, 1, 0, 0}
-                          };
-    }
-    else if(state == 1){
-      spacesOnRight = 0;
-      spacesOnLeft = 0;
-      shape = new int[][] { {0, 0, 0, 0},
-                            {0, 0, 0, 0},
-                            {1, 1, 1, 1},
-                            {0, 0, 0, 0}
-                          };
-    }
-  }
-}
 public class JShape implements Shape{
   
   int[][] shape;
@@ -808,6 +789,236 @@ public class JShape implements Shape{
       shape = new int[][] { {1, 0, 0},
                             {1, 1, 1},
                             {0, 0, 0}
+                          };
+    }
+  }
+}
+public class LShape implements Shape{
+  
+  int[][] shape;
+  int state;
+  int spacesOnRight;
+  int spacesOnLeft;
+  
+  LShape(){
+    shape = new int[3][3];
+    state = 0;
+    changeShape();
+  }
+  
+  public int getEmptySpacesOnRight(){
+    return spacesOnRight;
+  }
+
+  public int getEmptySpacesOnLeft(){
+    return spacesOnLeft;
+  }
+
+  public int[][] getArr(){
+    return shape;
+  }
+  
+  public void rotate(){
+    state++;
+    if(state > 3 ){
+      state = 0;
+    }
+    
+    changeShape();
+  }
+  
+  public void unRotate(){
+    state--;
+    if(state < 0){
+      state = 3;
+    }
+    changeShape();
+  }
+  
+  public int getSize(){
+    return 3;
+  }
+  
+  public int getColor(){
+    return MAGENTA;
+  }
+  
+  public void changeShape(){
+    if(state == 3){
+      spacesOnRight = 0;
+      spacesOnLeft = 1;
+      shape = new int[][] { {0, 1, 0},
+                            {0, 1, 0},
+                            {0, 1, 1}
+                          };
+    }
+    else if(state == 2){
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 1},
+                            {1, 1, 1},
+                            {0, 0, 0}
+                          };
+    }
+    else if(state == 1){
+      spacesOnRight = 1;
+      spacesOnLeft = 0;
+      shape = new int[][] { {1, 1, 0},
+                            {0, 1, 0},
+                            {0, 1, 0}
+                          };
+    }
+    else if(state == 0){
+      spacesOnLeft = 0;
+      spacesOnRight = 0;
+      shape = new int[][] { {0, 0, 0},
+                            {1, 1, 1},
+                            {1, 0, 0}
+                          };
+    }
+  }
+}
+/**
+*/
+public interface Shape{
+  public int[][] getArr();
+  
+  public void rotate();
+  public void unRotate();
+  
+  public int getColor();
+  public int getSize();
+  
+  public int getEmptySpacesOnRight();
+  public int getEmptySpacesOnLeft();
+}
+/**
+ * A ticker class to manage animation timing.
+*/
+public class Ticker{
+
+  private int lastTime;
+  private float deltaTime;
+  private boolean isPaused;
+  private float totalTime;
+  
+  public Ticker(){
+    reset();
+  }
+  
+  public void reset(){
+    deltaTime = 0f;
+    lastTime = -1;
+    isPaused = false;
+    totalTime = 0f;
+  }
+  
+  //
+  public void pause(){
+    isPaused = true;
+  }
+  
+  public void resume(){
+    if(isPaused == true){
+      reset();
+    }
+  }
+  
+  public float getTotalTime(){
+    return totalTime;
+  }
+  
+  /*
+   */
+  public float getDeltaSec(){
+    if(isPaused){
+      return 0;
+    }
+    return deltaTime;
+  }
+  
+  /*
+   * Calculates how many seconds passed since the last call to this method.
+   *
+   */
+  public void tick(){
+    if(lastTime == -1){
+      lastTime = millis();
+    }
+    
+    int delta = millis() - lastTime;
+    lastTime = millis();
+    deltaTime = delta/1000f;
+    totalTime += deltaTime;
+  }
+}
+public class IShape implements Shape{
+  
+  int[][] shape;
+  int state;
+  int spacesOnRight;
+  int spacesOnLeft;
+  
+  IShape(){
+    shape = null;
+    state = 0;
+    changeShape();
+  }
+  
+  public int getEmptySpacesOnRight(){
+    return spacesOnRight;
+  }
+  
+  public int getEmptySpacesOnLeft(){
+    return spacesOnLeft;
+  }
+  
+  public int[][] getArr(){
+    return shape;
+  }
+  
+  public void rotate(){
+    state++;
+    if(state > 1 ){
+      state = 0;
+    }
+    
+    changeShape();
+  }
+  
+  public void unRotate(){
+    state--;
+    if(state < 0){
+      state = 1;
+    }
+    changeShape();
+  }
+  
+  public int getSize(){
+    return 4;
+  }
+  
+  public int getColor(){
+    return RED;
+  }
+  
+  public void changeShape(){
+    if(state == 0){
+      spacesOnRight = 2;
+      spacesOnLeft = 1;
+      shape = new int[][] { {0, 1, 0, 0},
+                            {0, 1, 0, 0},
+                            {0, 1, 0, 0},
+                            {0, 1, 0, 0}
+                          };
+    }
+    else if(state == 1){
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 0, 0},
+                            {0, 0, 0, 0},
+                            {1, 1, 1, 1},
+                            {0, 0, 0, 0}
                           };
     }
   }
@@ -948,91 +1159,6 @@ final int KEY_w = 119;
 final int KEY_x = 120;
 final int KEY_y = 121;
 final int KEY_z = 122;
-public class LShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
-  
-  LShape(){
-    shape = new int[3][3];
-    state = 0;
-    changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 3 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return MAGENTA;
-  }
-  
-  public void changeShape(){
-    if(state == 3){
-      spacesOnRight = 0;
-      spacesOnLeft = 1;
-      shape = new int[][] { {0, 1, 0},
-                            {0, 1, 0},
-                            {0, 1, 1}
-                          };
-    }
-    else if(state == 2){
-      spacesOnRight = 0;
-      spacesOnLeft = 0;
-      shape = new int[][] { {0, 0, 1},
-                            {1, 1, 1},
-                            {0, 0, 0}
-                          };
-    }
-    else if(state == 1){
-      spacesOnRight = 1;
-      spacesOnLeft = 0;
-      shape = new int[][] { {1, 1, 0},
-                            {0, 1, 0},
-                            {0, 1, 0}
-                          };
-    }
-    else if(state == 0){
-      spacesOnLeft = 0;
-      spacesOnRight = 0;
-      shape = new int[][] { {0, 0, 0},
-                            {1, 1, 1},
-                            {1, 0, 0}
-                          };
-    }
-  }
-}
 public class OShape implements Shape{
   int[][] shape;
   
@@ -1065,7 +1191,6 @@ public class OShape implements Shape{
     return BLUE;
   }
 }
-
 public class SShape implements Shape{
   
   int[][] shape;
@@ -1135,20 +1260,6 @@ public class SShape implements Shape{
                           };
     }
   }
-}
-/**
-*/
-public interface Shape{
-  public int[][] getArr();
-  
-  public void rotate();
-  public void unRotate();
-  
-  public int getColor();
-  public int getSize();
-  
-  public int getEmptySpacesOnRight();
-  public int getEmptySpacesOnLeft();
 }
 public class TShape implements Shape{
   
@@ -1236,66 +1347,6 @@ public class TShape implements Shape{
     }
   }
 }
-/**
- * A ticker class to manage animation timing.
-*/
-public class Ticker{
-
-  private int lastTime;
-  private float deltaTime;
-  private boolean isPaused;
-  private float totalTime;
-  
-  public Ticker(){
-    reset();
-  }
-  
-  public void reset(){
-    deltaTime = 0f;
-    lastTime = -1;
-    isPaused = false;
-    totalTime = 0f;
-  }
-  
-  //
-  public void pause(){
-    isPaused = true;
-  }
-  
-  public void resume(){
-    if(isPaused == true){
-      reset();
-    }
-  }
-  
-  public float getTotalTime(){
-    return totalTime;
-  }
-  
-  /*
-   */
-  public float getDeltaSec(){
-    if(isPaused){
-      return 0;
-    }
-    return deltaTime;
-  }
-  
-  /*
-   * Calculates how many seconds passed since the last call to this method.
-   *
-   */
-  public void tick(){
-    if(lastTime == -1){
-      lastTime = millis();
-    }
-    
-    int delta = millis() - lastTime;
-    lastTime = millis();
-    deltaTime = delta/1000f;
-    totalTime += deltaTime;
-  }
-}
 public class ZShape implements Shape{
   
   int[][] shape;
@@ -1366,4 +1417,3 @@ public class ZShape implements Shape{
     }
   }
 }
-

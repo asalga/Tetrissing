@@ -94,7 +94,6 @@ public void drawShape(Shape shape, int colPos, int rowPos){
 
 public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
- // randInt = S_SHAPE;
   
   shapeStats[randInt]++;
   

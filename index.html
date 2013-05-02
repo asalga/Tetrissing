@@ -29,10 +29,11 @@
 	}
 	#content { 
 		margin: 50px auto 0px auto; padding: 25px 25px 15px 25px;
-		width: 100px; min-width: 300px; overflow: auto;
+		overflow: auto;
 		border-left: 1px solid #444; border-top: 1px solid #444; 
 		border-right: 1px solid #333; border-bottom: 1px solid #333;
 		background-color: #3d3d3d;
+		
 	}
 		</style>
 		<!--[if lt IE 9]>
@@ -43,13 +44,14 @@
 // convenience function to get the id attribute of generated sketch html element
 function getProcessingSketchId () { return 'Tetrissing'; }
 </script>
-<script src="Tetrissing.js" type="text/javascript"></script>
+<script src="Tetrissing-min.js" type="text/javascript"></script>
 
 	</head>
 	<body>
 		<div id="content">
-			<div>
-				<canvas id="Tetrissing" data-processing-sources="Tetrissing.js" 
+		<h1>Tetrissing by Andor Salga</h1>	
+		<div>
+				<canvas id="Tetrissing" data-processing-sources="Tetrissing-min.js" 
 						width="100" height="100">
 					<p>Your browser does not support the canvas tag.</p>
 					<!-- Note: you can put any alternative content here. -->
@@ -58,9 +60,10 @@ function getProcessingSketchId () { return 'Tetrissing'; }
 					<p>JavaScript is required to view the contents of this page.</p>
 				</noscript>
 	    	</div>
-			<h1>Tetrissing!</h1>
-    		<p id="description"></p>
+    		
+		<p id="description"></p>
 			<p id="sources">Source code: <a href="Tetrissing.pde">Tetrissing</a> <a href="Tetrissing.js">Tetrissing.js</a> </p>
+			
 			<p>
 			Built with <a href="http://processing.org" title="Processing">Processing</a>
 			and <a href="http://processingjs.org" title="Processing.js">Processing.js</a>

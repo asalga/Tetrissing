@@ -73,6 +73,7 @@ boolean allowInfiniteRotation = false;
 boolean allowKickBack= true;
 boolean allowChainReactions = false;
 boolean allowDrawingGhost = true;
+boolean allowFadeEffect = true;
 
 
 /*
@@ -116,7 +117,7 @@ public void setup(){
   
   // P = pause
   // G = ghost
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G});
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F});
   
   numLines = 0;
    
@@ -223,8 +224,10 @@ void moveShapeRight(){
 /*
  */
 public void update(){
+  
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
+  allowFadeEffect = Keyboard.isKeyDown(KEY_F);
   
   dropTicker.tick();
   
@@ -314,8 +317,12 @@ public void update(){
   
   findGhostPiecePosition();
       
-  debug.addString("      FPS:" + (int)frameRate);
-  debug.addString("      Lines:" + numLines);
+  debug.addString("FPS:" + (int)frameRate);
+  debug.addString("Lines:" + numLines);
+  debug.addString("----------------");
+  debug.addString("F - toggle Fade effect");
+  debug.addString("G - toggle Ghost piece");
+  debug.addString("P - pause game");
 }
 
 /*
@@ -405,12 +412,12 @@ public void draw(){
   
   update();
   
-  if(Keyboard.isKeyDown(KEY_DOWN)){
+  if(allowFadeEffect){
     pushStyle();
-    fill(0, 30);
+    fill(0, 32);
     noStroke();
     rect(0, 0, width, height);
-    popStyle();
+    popStyle();  
   }
   else{
     background(0);
@@ -425,11 +432,14 @@ public void draw(){
   drawGhostPiece();
 
   drawCurrShape();
-    
+ 
+  pushMatrix();
+  translate(200, 30);
   pushStyle();
   stroke(255);
   debug.draw();
   popStyle();
+  popMatrix();
   
   postRender();
 }

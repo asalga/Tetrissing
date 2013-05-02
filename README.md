@@ -24,5 +24,4 @@ Known Issues:
  - Fix moving piece faster by holding down both left and right and
    releasing one key
  - Add chain reaction feature
- - Make makefile
  - Fix drawing drop streak

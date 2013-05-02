@@ -3,14 +3,18 @@ Tetrissing
 
 Tetris in Processing
 
-
 Keys:
  - Left and Right arrow keys to move piece
  - Up to rotate piece
  - Down to move piece down faster
-
+ - G,F,K - toggle features
  - P for pause
  - Space to immediately drop piece
+
+To Build:
+ $ make
+ $ python -m SimpleHTTPServer
+Then point your browser to: http://localhost:8000
 
 Known Issues:
  - Make good UI
@@ -24,3 +28,4 @@ Known Issues:
    releasing one key
  - Add chain reaction feature
  - Fix drawing drop streak
+ - Clean up index.html

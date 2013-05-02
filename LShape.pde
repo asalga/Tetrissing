@@ -49,7 +49,7 @@ public class LShape implements Shape{
   }
   
   public void changeShape(){
-    if(state == 0){
+    if(state == 3){
       spacesOnRight = 0;
       spacesOnLeft = 1;
       shape = new int[][] { {0, 1, 0},
@@ -57,7 +57,7 @@ public class LShape implements Shape{
                             {0, 1, 1}
                           };
     }
-    else if(state == 1){
+    else if(state == 2){
       spacesOnRight = 0;
       spacesOnLeft = 0;
       shape = new int[][] { {0, 0, 1},
@@ -65,7 +65,7 @@ public class LShape implements Shape{
                             {0, 0, 0}
                           };
     }
-    else if(state == 2){
+    else if(state == 1){
       spacesOnRight = 1;
       spacesOnLeft = 0;
       shape = new int[][] { {1, 1, 0},
@@ -73,7 +73,7 @@ public class LShape implements Shape{
                             {0, 1, 0}
                           };
     }
-    else if(state == 3){
+    else if(state == 0){
       spacesOnLeft = 0;
       spacesOnRight = 0;
       shape = new int[][] { {0, 0, 0},

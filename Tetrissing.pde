@@ -94,6 +94,7 @@ public void drawShape(Shape shape, int colPos, int rowPos){
 
 public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
+ // randInt = S_SHAPE;
   
   shapeStats[randInt]++;
   
@@ -116,7 +117,6 @@ public void setup(){
   
   // P = pause
   // G = ghost
-  // 
   Keyboard.lockKeys(new int[]{KEY_P, KEY_G});
   
   numLines = 0;
@@ -483,24 +483,28 @@ public void rotateShape(){
 
   currentShape.rotate();
       
-      //
-      //
-      //
+  //
+  //
+  //
   int pos = currShapeCol;  
   int size = currentShape.getSize();
   int emptyRightSpaces = currentShape.getEmptySpacesOnRight();
   int emptyLeftSpaces = currentShape.getEmptySpacesOnLeft();
   
   int amountToShiftLeft = pos + size - emptyRightSpaces - (NUM_COLS-1);
-  int amountToShiftRight = (pos - emptyLeftSpaces) + 1;
+  int amountToShiftRight = 1 - (pos - emptyLeftSpaces);
   
   println("pos: " + pos);
   println("amountToShiftLeft: " + amountToShiftLeft);
   
   println("amountToShiftRight: " + amountToShiftRight);
+  println("emptyLeftSpaces: " + emptyLeftSpaces);
   
+  // TODO: fix this hack
   // If one part of the piece is touching the right border
-  if(pos < 3 && amountToShiftRight > 0){
+  if(amountToShiftRight > 0 && pos <= 0){
+    println("pos: " + pos);
+    println("amoutnToShift: " + amountToShiftRight);
     currShapeCol += amountToShiftRight;
 
     // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
@@ -509,7 +513,10 @@ public void rotateShape(){
     }
   }
   
-   if( pos > 8 && amountToShiftLeft > 0){
+   if(amountToShiftLeft > 0 ){
+     println("pos: " + pos);
+     println("amountToShiftLeft: " + amountToShiftLeft);
+    
   //else if(pos < 0 || pos - emptyLeftSpaces < 0 ){
   //amountToShiftRight > 0){   
     currShapeCol -= amountToShiftLeft;

@@ -23,7 +23,6 @@ Known Issues:
  - Allow infinite rotate option
  - Fix moving piece faster by holding down both left and right and
    releasing one key
- - Figure out which direction pieces should rotate
  - Add chain reaction feature
  - Make makefile
  - Fix drawing drop streak

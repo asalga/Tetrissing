@@ -1,3 +1,5 @@
+final boolean DEBUG = false;
+
 final int T_SHAPE = 0;
 final int L_SHAPE = 1;
 final int J_SHAPE = 2;
@@ -24,6 +26,7 @@ int currShapeRow;
 
 //Queue nextPieceQueue
 
+PImage background;
 boolean upKeyState = false;
 
 //
@@ -46,13 +49,13 @@ float blocksPerSecond = 10.0f;
 int numLines;
 int numTetrises;
 
-int NUM_ROWS = 25 + 1;
+int NUM_ROWS = 22 + 1;
 int NUM_COLS = 10 + 2;
 
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE;
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + 30;
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -111,13 +114,17 @@ public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
   
+  background = loadImage("images/background.jpg");
+  
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
   
   // P = pause
   // G = ghost
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F});
+  // F = fade
+  // K = kickback
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K});
   
   numLines = 0;
    
@@ -228,6 +235,7 @@ public void update(){
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
   allowFadeEffect = Keyboard.isKeyDown(KEY_F);
+  allowKickBack = Keyboard.isKeyDown(KEY_K);
   
   dropTicker.tick();
   
@@ -316,12 +324,13 @@ public void update(){
   }
   
   findGhostPiecePosition();
-      
+  
   debug.addString("FPS:" + (int)frameRate);
   debug.addString("Lines:" + numLines);
   debug.addString("----------------");
   debug.addString("F - toggle Fade effect");
   debug.addString("G - toggle Ghost piece");
+  debug.addString("K - toggle Kick back");
   debug.addString("P - pause game");
 }
 
@@ -406,13 +415,14 @@ public int getRandomInt(int minVal, int maxVal) {
 
 public void draw(){
   
+  
   if(Keyboard.isKeyDown(KEY_P) ){
     return;
   }
   
   update();
   
-  if(allowFadeEffect){
+  /*if(allowFadeEffect){
     pushStyle();
     fill(0, 32);
     noStroke();
@@ -421,11 +431,18 @@ public void draw(){
   }
   else{
     background(0);
-  }
+  }*/
   
+  image(background, 0, 0);
+  
+  
+  translate(0, -8);
+  drawBorders();
+  
+  translate(0, 14);
   //drawBackground();
   
-  drawBorders();
+  
   drawGrid();
   
   findGhostPiecePosition();
@@ -434,7 +451,7 @@ public void draw(){
   drawCurrShape();
  
   pushMatrix();
-  translate(200, 30);
+  translate(200, 40);
   pushStyle();
   stroke(255);
   debug.draw();
@@ -503,54 +520,43 @@ public void rotateShape(){
   int amountToShiftLeft = pos + size - emptyRightSpaces - (NUM_COLS-1);
   int amountToShiftRight = 1 - (pos - emptyLeftSpaces);
   
-  println("pos: " + pos);
-  println("amountToShiftLeft: " + amountToShiftLeft);
-  
-  println("amountToShiftRight: " + amountToShiftRight);
-  println("emptyLeftSpaces: " + emptyLeftSpaces);
-  
-  // TODO: fix this hack
-  // If one part of the piece is touching the right border
-  if(amountToShiftRight > 0 && pos <= 0){
+  if(DEBUG){
     println("pos: " + pos);
-    println("amoutnToShift: " + amountToShiftRight);
-    currShapeCol += amountToShiftRight;
-
-    // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-      currShapeCol -= amountToShiftLeft;
-    }
+    println("amountToShiftLeft: " + amountToShiftLeft);
+  
+    println("amountToShiftRight: " + amountToShiftRight);
+    println("emptyLeftSpaces: " + emptyLeftSpaces);
   }
   
-   if(amountToShiftLeft > 0 ){
-     println("pos: " + pos);
-     println("amountToShiftLeft: " + amountToShiftLeft);
+  if(allowKickBack){
+    // TODO: fix this hack
+    // If one part of the piece is touching the right border
+    if(amountToShiftRight > 0 && pos <= 0){
+      currShapeCol += amountToShiftRight;
+  
+      // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+        currShapeCol -= amountToShiftLeft;
+      }
+    }
     
-  //else if(pos < 0 || pos - emptyLeftSpaces < 0 ){
-  //amountToShiftRight > 0){   
-    currShapeCol -= amountToShiftLeft;
-
-    // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-      currShapeCol += amountToShiftLeft;
+    if(amountToShiftLeft > 0 ){
+      currShapeCol -= amountToShiftLeft;
+  
+      // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+        currShapeCol += amountToShiftLeft;
+      }
     }
   }
-
+    
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-    println("undoing rotation");
     currentShape.unRotate();
   }
-  
-  // If rotating the piece will result in a collision against the wall
-  //if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0 &&  ){
-  //}
-  
-  // move the piece away from the wall and try rotating again
-  
-  // if that fails, undo transformations.
-  
 }
-    
+
+/*
+ */
 public void keyPressed(){
   
   if(keyCode == KEY_UP && upKeyState == false){
@@ -593,10 +599,11 @@ public void drawGrid(){
 public void drawBorders(){
   pushStyle();
   noStroke();
-  fill(128);
+  fill(0);
   
+  // Floor
   for(int col = 0; col < NUM_COLS; col++){
-    rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+    //rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
   
   for(int row = 0; row < NUM_ROWS; row++){

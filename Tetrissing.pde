@@ -46,8 +46,8 @@ float blocksPerSecond = 10.0f;
 int numLines;
 int numTetrises;
 
-int NUM_ROWS = 35 + 1;
-int NUM_COLS = 20 + 2;
+int NUM_ROWS = 25 + 1;
+int NUM_COLS = 10 + 2;
 
 int BOX_SIZE = 16;
 

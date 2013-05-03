@@ -453,23 +453,25 @@ public void draw(){
       background(0);
     }
     
-    image(backgroundImg, 0, 0);
+    //image(backgroundImg, 0, 0);
     
     translate(0, BOX_SIZE * 2);
     //translate(0, -8);
-    drawBorders();
+
     
     translate(0, 14);
     //drawBackground();
     
     
-    drawGrid();
+    drawBoard();
     
     findGhostPiecePosition();
     drawGhostPiece();
   
     drawCurrShape();
    
+       drawBorders();
+       
     pushMatrix();
     translate(200, 40);
     pushStyle();
@@ -609,7 +611,7 @@ public void postRender(){
  * Iterate from 1 to NUM_COLS-1 because we don't want to draw the borders.
  * Same goes for not drawing the last row.
  */
-public void drawGrid(){
+public void drawBoard(){
   for(int cols = 1; cols < NUM_COLS-1; cols++){
     for(int rows = 0; rows < NUM_ROWS-1; rows++){
       drawBox(cols, rows, grid[cols][rows]);
@@ -620,11 +622,14 @@ public void drawGrid(){
 public void drawBorders(){
   pushStyle();
   noStroke();
-  fill(0);
+  fill(256,256,256);
+  //println("sdrf");
+  
+  
   
   // Floor
   for(int col = 0; col < NUM_COLS; col++){
-    //rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+    rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
   
   for(int row = 0; row < NUM_ROWS; row++){

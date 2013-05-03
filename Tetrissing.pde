@@ -18,13 +18,15 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
+final int NUM_PIECES = 7;
+
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
 Shape currentShape;
 int currShapeCol;
 int currShapeRow;
 
-//Queue nextPieceQueue
+Queue nextPieceQueue = new Queue();
 
 PImage backgroundImg;
 boolean upKeyState = false;
@@ -100,6 +102,7 @@ public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
   
   shapeStats[randInt]++;
+  println(randInt);
   
   if(randInt == T_SHAPE) return new TShape();
   if(randInt == L_SHAPE) return new LShape();
@@ -107,7 +110,7 @@ public Shape getRandomShape(){
   if(randInt == O_SHAPE) return new OShape();
   if(randInt == J_SHAPE) return new JShape();
   if(randInt == I_SHAPE) return new IShape();
-  else             return new SShape();
+  else                   return new SShape();
 }
 
 public void setup(){
@@ -120,6 +123,12 @@ public void setup(){
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
   
+  //
+  for(int i = 0; i < 3; i++){
+    nextPieceQueue.pushBack(getRandomShape());
+  }
+
+
   // P = pause
   // G = ghost
   // F = fade
@@ -139,10 +148,14 @@ public void setup(){
   createBorders();
 }
 
+
+
 public void createPiece(){
-  currentShape = getRandomShape();
+  currentShape = (Shape)nextPieceQueue.popFront(); 
   currShapeRow = -currentShape.getSize();
-  currShapeCol = 4;
+  currShapeCol = NUM_COLS/2;
+  
+  nextPieceQueue.pushBack(getRandomShape());
 }
 
 public void createBorders(){
@@ -260,7 +273,6 @@ public void update(){
       }else{
         if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) == 1 && currShapeRow < 0){
           //exit();
-          
         }
       }
     }
@@ -360,7 +372,6 @@ public void addShapeToGrid(Shape shape){
     hasLostGame = true;
     return;
   }
-  
     
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
@@ -469,7 +480,17 @@ public void draw(){
   
     drawCurrShape();
    
-       drawBorders();
+    // Draw the first one in the queue
+    pushStyle();
+    Shape nextShape = (Shape)nextPieceQueue.peekFront();
+    
+    fill(getColorFromID(nextShape.getColor()));
+    stroke(255);
+    strokeWeight(1);
+    drawShape(nextShape, 20, 0);
+    popStyle();
+    
+    drawBorders();
        
     pushMatrix();
     translate(200, 40);
@@ -510,6 +531,8 @@ public void drawCurrShape(){
   popStyle();
 }
 
+//public void drawPiece(Shape, currShapeCol, currShapeRow){
+//}
 
 /*
  */

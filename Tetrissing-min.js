@@ -18,13 +18,15 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
+final int NUM_PIECES = 7;
+
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
 Shape currentShape;
 int currShapeCol;
 int currShapeRow;
 
-//Queue nextPieceQueue
+Queue nextPieceQueue = new Queue();
 
 PImage backgroundImg;
 boolean upKeyState = false;
@@ -33,7 +35,6 @@ boolean upKeyState = false;
 int ghostShapeCol;
 int ghostShapeRow;
 
-boolean playerLost = false;
 boolean hasLostGame = false;
 
 final float TAP_LEN_IN_SEC = 0.1f;
@@ -56,7 +57,7 @@ int NUM_COLS = 10 + 2;
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4); // 30
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 3); // 30
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -101,6 +102,7 @@ public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
   
   shapeStats[randInt]++;
+  println(randInt);
   
   if(randInt == T_SHAPE) return new TShape();
   if(randInt == L_SHAPE) return new LShape();
@@ -108,7 +110,7 @@ public Shape getRandomShape(){
   if(randInt == O_SHAPE) return new OShape();
   if(randInt == J_SHAPE) return new JShape();
   if(randInt == I_SHAPE) return new IShape();
-  else             return new SShape();
+  else                   return new SShape();
 }
 
 public void setup(){
@@ -121,6 +123,12 @@ public void setup(){
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
   
+  //
+  for(int i = 0; i < 3; i++){
+    nextPieceQueue.pushBack(getRandomShape());
+  }
+
+
   // P = pause
   // G = ghost
   // F = fade
@@ -140,10 +148,14 @@ public void setup(){
   createBorders();
 }
 
+
+
 public void createPiece(){
-  currentShape = getRandomShape();
+  currentShape = (Shape)nextPieceQueue.popFront(); 
   currShapeRow = -currentShape.getSize();
-  currShapeCol = 4;
+  currShapeCol = NUM_COLS/2;
+  
+  nextPieceQueue.pushBack(getRandomShape());
 }
 
 public void createBorders(){
@@ -260,7 +272,7 @@ public void update(){
         addShapeToGrid(currentShape);
       }else{
         if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) == 1 && currShapeRow < 0){
-          exit();
+          //exit();
         }
       }
     }
@@ -360,7 +372,6 @@ public void addShapeToGrid(Shape shape){
     hasLostGame = true;
     return;
   }
-  
     
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
@@ -432,7 +443,8 @@ public int getRandomInt(int minVal, int maxVal) {
 public void draw(){
   
   if(hasLostGame){
-    exit();
+    showGameOver();
+    noLoop();
   }
   
   else{
@@ -453,23 +465,33 @@ public void draw(){
       background(0);
     }
     
-    image(backgroundImg, 0, 0);
-    
-    translate(0, BOX_SIZE * 2);
+    //image(backgroundImg, 0, 0);    
+    //translate(0, BOX_SIZE * 2);
     //translate(0, -8);
-    drawBorders();
-    
-    translate(0, 14);
+    //translate(0, 14);
     //drawBackground();
     
+    translate(0, BOX_SIZE * 3);
     
-    drawGrid();
+    drawBoard();
     
     findGhostPiecePosition();
     drawGhostPiece();
   
     drawCurrShape();
    
+    // Draw the first one in the queue
+    pushStyle();
+    Shape nextShape = (Shape)nextPieceQueue.peekFront();
+    
+    fill(getColorFromID(nextShape.getColor()));
+    stroke(255);
+    strokeWeight(1);
+    drawShape(nextShape, 20, 0);
+    popStyle();
+    
+    drawBorders();
+       
     pushMatrix();
     translate(200, 40);
     pushStyle();
@@ -509,6 +531,8 @@ public void drawCurrShape(){
   popStyle();
 }
 
+//public void drawPiece(Shape, currShapeCol, currShapeRow){
+//}
 
 /*
  */
@@ -609,7 +633,7 @@ public void postRender(){
  * Iterate from 1 to NUM_COLS-1 because we don't want to draw the borders.
  * Same goes for not drawing the last row.
  */
-public void drawGrid(){
+public void drawBoard(){
   for(int cols = 1; cols < NUM_COLS-1; cols++){
     for(int rows = 0; rows < NUM_ROWS-1; rows++){
       drawBox(cols, rows, grid[cols][rows]);
@@ -620,11 +644,14 @@ public void drawGrid(){
 public void drawBorders(){
   pushStyle();
   noStroke();
-  fill(0);
+  fill(256,256,256);
+  //println("sdrf");
+  
+  
   
   // Floor
   for(int col = 0; col < NUM_COLS; col++){
-    //rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+    rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
   
   for(int row = 0; row < NUM_ROWS; row++){
@@ -658,6 +685,19 @@ public void drawBackground(){
       rect(cols * BOX_SIZE, rows * BOX_SIZE, BOX_SIZE, BOX_SIZE);
     }
   }
+  popStyle();
+}
+
+public void showGameOver(){
+  pushStyle();
+  fill(128, 128);
+  noStroke();
+  rect(0, 0, width, height);
+  PFont font = createFont("verdana", 50);
+  textFont(font);
+  textAlign(CENTER, CENTER);
+  fill(128, 0, 0);
+  text("Game Over", width/2, height/2);
   popStyle();
 }
 /*
@@ -876,6 +916,38 @@ public class LShape implements Shape{
                             {1, 0, 0}
                           };
     }
+  }
+}
+/*
+ A Queue for the next few pieces.
+*/
+public class Queue<T>{
+  private ArrayList<T> items;
+  
+  public Queue(){
+    items = new ArrayList<T>();
+  }
+
+  public void pushBack(T i){
+    items.add(i);
+  }
+ 
+  public T popFront(){
+    T item = items.get(0);
+    items.remove(0);
+    return item;
+  }
+  
+  public boolean isEmpty(){
+    return items.isEmpty();
+  }
+  
+  public int size(){
+    return items.size();
+  }
+  
+  public T peekFront(){
+    return items.get(0);
   }
 }
 /**

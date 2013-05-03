@@ -20,10 +20,11 @@ Known Issues:
  - Make good UI
  - User can slide piece along floor
  - Add animation on line clear
- - Add audio
  - Fix dropping piece while pause
  - Allow infinite rotate option
  - Fix moving piece faster by holding down both left and right and
    releasing one key
  - Add chain reaction feature
  - Fix drawing drop streak
+ - Clean up audio and get it to work with JavaScript
+

@@ -1,3 +1,12 @@
+import ddf.minim.*;
+
+Minim minim;
+AudioPlayer dropPiece;
+AudioPlayer clearLine;
+
+
+
+
 final boolean DEBUG = false;
 
 final int T_SHAPE = 0;
@@ -112,9 +121,20 @@ public Shape getRandomShape(){
   else                   return new SShape();
 }
 
+public void stop(){
+  dropPiece.close();
+  minim.stop();
+  super.stop();
+}
+
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
+  
+  // Audio Stuff
+  minim = new Minim(this);
+  dropPiece = minim.loadFile("audio/dropPiece.wav");
+  clearLine = minim.loadFile("audio/clearLine.wav");
   
   backgroundImg = loadImage("images/background.jpg");
   
@@ -382,6 +402,9 @@ public void addShapeToGrid(Shape shape){
     }
   }
   
+  dropPiece.play();
+  dropPiece.rewind();
+  
   removeFilledLines();
   
   createPiece();
@@ -404,6 +427,9 @@ public void removeFilledLines(){
     if(isFull){
       numLines++;
       moveAllRowsDown(row);
+      
+      clearLine.play();
+      clearLine.rewind();
       
       // Start from the bottom again
       row = NUM_ROWS - 1;

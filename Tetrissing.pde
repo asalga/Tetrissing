@@ -33,7 +33,6 @@ boolean upKeyState = false;
 int ghostShapeCol;
 int ghostShapeRow;
 
-boolean playerLost = false;
 boolean hasLostGame = false;
 
 final float TAP_LEN_IN_SEC = 0.1f;
@@ -56,7 +55,7 @@ int NUM_COLS = 10 + 2;
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4); // 30
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 3); // 30
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -260,7 +259,8 @@ public void update(){
         addShapeToGrid(currentShape);
       }else{
         if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) == 1 && currShapeRow < 0){
-          exit();
+          //exit();
+          
         }
       }
     }
@@ -432,7 +432,8 @@ public int getRandomInt(int minVal, int maxVal) {
 public void draw(){
   
   if(hasLostGame){
-    exit();
+    showGameOver();
+    noLoop();
   }
   
   else{
@@ -453,15 +454,13 @@ public void draw(){
       background(0);
     }
     
-    //image(backgroundImg, 0, 0);
-    
-    translate(0, BOX_SIZE * 2);
+    //image(backgroundImg, 0, 0);    
+    //translate(0, BOX_SIZE * 2);
     //translate(0, -8);
-
-    
-    translate(0, 14);
+    //translate(0, 14);
     //drawBackground();
     
+    translate(0, BOX_SIZE * 3);
     
     drawBoard();
     
@@ -663,5 +662,18 @@ public void drawBackground(){
       rect(cols * BOX_SIZE, rows * BOX_SIZE, BOX_SIZE, BOX_SIZE);
     }
   }
+  popStyle();
+}
+
+public void showGameOver(){
+  pushStyle();
+  fill(128, 128);
+  noStroke();
+  rect(0, 0, width, height);
+  PFont font = createFont("verdana", 50);
+  textFont(font);
+  textAlign(CENTER, CENTER);
+  fill(128, 0, 0);
+  text("Game Over", width/2, height/2);
   popStyle();
 }

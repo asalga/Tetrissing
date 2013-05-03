@@ -102,7 +102,6 @@ public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
   
   shapeStats[randInt]++;
-  println(randInt);
   
   if(randInt == T_SHAPE) return new TShape();
   if(randInt == L_SHAPE) return new LShape();

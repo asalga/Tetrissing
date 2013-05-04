@@ -1,3 +1,9 @@
+import ddf.minim.*;
+
+Minim minim;
+AudioPlayer dropPiece;
+AudioPlayer clearLine;
+
 final boolean DEBUG = false;
 
 final int T_SHAPE = 0;
@@ -36,6 +42,8 @@ int ghostShapeCol;
 int ghostShapeRow;
 
 boolean hasLostGame = false;
+boolean didDrawGameOver = false;
+
 
 final float TAP_LEN_IN_SEC = 0.1f;
 boolean holdingDownLeft = false;
@@ -50,14 +58,16 @@ float blocksPerSecond = 10.0f;
 // Number of times user cleared 4 lines in one shot
 int numLines;
 int numTetrises;
+int score;
 
-int NUM_ROWS = 22 + 1;
+// Add 2 for left and right borders and 1 for floor
 int NUM_COLS = 10 + 2;
+int NUM_ROWS = 22 + 1;
 
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 3); // 30
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 3);
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -73,12 +83,11 @@ Ticker rightMoveTicker;
 // --- FEATURES ---
 // InfiniteRotation - Allows player to keep rotating piece even if it fell
 // kickback - If true, players can rotate pieces even if flush against wall.
-
 boolean allowInfiniteRotation = false;
 boolean allowKickBack= true;
 boolean allowChainReactions = false;
-boolean allowDrawingGhost = true;
-boolean allowFadeEffect = true;
+boolean allowDrawingGhost = false;
+boolean allowFadeEffect = false;
 
 
 /*
@@ -112,9 +121,20 @@ public Shape getRandomShape(){
   else                   return new SShape();
 }
 
+public void stop(){
+  dropPiece.close();
+  minim.stop();
+  super.stop();
+}
+
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
+  
+  // Audio Stuff
+  minim = new Minim(this);
+  dropPiece = minim.loadFile("audio/dropPiece.wav");
+  clearLine = minim.loadFile("audio/clearLine.wav");
   
   backgroundImg = loadImage("images/background.jpg");
   
@@ -134,6 +154,9 @@ public void setup(){
   // K = kickback
   Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K});
   
+  // Assume the user wants kickback
+  Keyboard.setKeyDown(KEY_K, true);
+  
   numLines = 0;
    
   for(int c = 0; c < NUM_COLS; c++){
@@ -146,8 +169,6 @@ public void setup(){
    
   createBorders();
 }
-
-
 
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
@@ -175,27 +196,23 @@ public void createBorders(){
  * keep going down until we find a collision.
  */
 public void findGhostPiecePosition(){
-  if(allowDrawingGhost == false){
-    return;
-  }
+  //if(allowDrawingGhost == false){return;}
   
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;
   
-  while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow) == 0){
+  // If we move the shape down one row and it will not result in a collision, 
+  // we can safely move the ghost piece row.
+  while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow + 1) == false){
     ghostShapeRow++;
   }
-  
-  // After we find a collision, we need to go up one row
-  // because that's where the piece would fall.
-  ghostShapeRow--;
 }
 
 /*
  * 0 - no collision
  * 1 - collision
  */
-public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
+public boolean checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   
@@ -223,12 +240,12 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
    
       // Transposed here!
       if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[r][c] != EMPTY){
-        return 1;
+        return true;
       }
     }
   }
   
-  return 0;
+  return false;
 }
 
 /**
@@ -236,7 +253,7 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
 public void moveShapeLeft(){
   currShapeCol--;
   
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
     currShapeCol++;
   }
 }
@@ -244,7 +261,7 @@ public void moveShapeLeft(){
 void moveShapeRight(){
   currShapeCol++;
   
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
     currShapeCol--;
   }
 }
@@ -264,15 +281,13 @@ public void update(){
     dropTicker.reset();
     
     if(currentShape != null){
-      currShapeRow++;
       
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-        currShapeRow--;
-        addShapeToGrid(currentShape);
-      }else{
-        if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) == 1 && currShapeRow < 0){
-          //exit();
-        }
+      // If moving the current piece down one row results in a collision, we can add it to the board
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow + 1)){
+        addPieceToBoard(currentShape);
+      }
+      else{
+        currShapeRow++;
       }
     }
   }
@@ -350,19 +365,23 @@ public void update(){
   
   findGhostPiecePosition();
   
-  debug.addString("FPS:" + (int)frameRate);
-  debug.addString("Lines:" + numLines);
+  //debug.addString("FPS:" + (int)frameRate);
+  debug.addString("Score: " + score);
   debug.addString("----------------");
-  debug.addString("F - toggle Fade effect");
-  debug.addString("G - toggle Ghost piece");
-  debug.addString("K - toggle Kick back");
-  debug.addString("P - pause game");
+  debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
+  debug.addString("G - Toggle Ghost piece ");
+  debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
+  debug.addString("P - Pause game");
+}
+
+public String getOnStr(boolean b){
+  return b ? "(on)" : "(off)";
 }
 
 /*
 * 
 */
-public void addShapeToGrid(Shape shape){
+public void addPieceToBoard(Shape shape){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   int col = shape.getColor();
@@ -381,6 +400,9 @@ public void addShapeToGrid(Shape shape){
       }
     }
   }
+  
+  dropPiece.play();
+  dropPiece.rewind();
   
   removeFilledLines();
   
@@ -402,8 +424,11 @@ public void removeFilledLines(){
     }
     
     if(isFull){
-      numLines++;
+      score += 100;
       moveAllRowsDown(row);
+      
+      clearLine.play();
+      clearLine.rewind();
       
       // Start from the bottom again
       row = NUM_ROWS - 1;
@@ -422,14 +447,16 @@ public void moveAllRowsDown(int row){
   }
 }
 
-public void dropShape(){
+/** Immediately place the piece into the board.
+ */
+public void dropPiece(){
   boolean foundCollision = false;
   
   while(foundCollision == false){ 
     currShapeRow++;
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
       currShapeRow -= 1;
-      addShapeToGrid(currentShape);
+      addPieceToBoard(currentShape);
       foundCollision = true;
     }
   }
@@ -439,71 +466,75 @@ public int getRandomInt(int minVal, int maxVal) {
   return (int)random(minVal, maxVal + 1);
 }
 
+/**
+ */
 public void draw(){
   
+  if(didDrawGameOver){
+    return;
+  }
+
   if(hasLostGame){
     showGameOver();
-    noLoop();
+    return;
   }
   
+  if(Keyboard.isKeyDown(KEY_P) ){
+    showGamePaused();
+    return;
+  }
+    
+  update();
+  
+  if(allowFadeEffect){
+    pushStyle();
+    fill(0, 32);
+    noStroke();
+    rect(0, 0, width, height);
+    popStyle();  
+  }
   else{
-    if(Keyboard.isKeyDown(KEY_P) ){
-      return;
-    }
-    
-    update();
-    
-    if(allowFadeEffect){
-      pushStyle();
-      fill(0, 32);
-      noStroke();
-      rect(0, 0, width, height);
-      popStyle();  
-    }
-    else{
-      background(0);
-    }
-    
-    //image(backgroundImg, 0, 0);    
-    //translate(0, BOX_SIZE * 2);
-    //translate(0, -8);
-    //translate(0, 14);
-    //drawBackground();
-    
-    translate(0, BOX_SIZE * 3);
-    
-    drawBoard();
-    
-    findGhostPiecePosition();
-    drawGhostPiece();
-  
-    drawCurrShape();
-   
-    // Draw the first one in the queue
-    pushStyle();
-    Shape nextShape = (Shape)nextPieceQueue.peekFront();
-    
-    fill(getColorFromID(nextShape.getColor()));
-    stroke(255);
-    strokeWeight(1);
-    drawShape(nextShape, 20, 0);
-    popStyle();
-    
-    drawBorders();
-       
-    pushMatrix();
-    translate(200, 40);
-    pushStyle();
-    stroke(255);
-    debug.draw();
-    popStyle();
-    popMatrix();
-    
-    postRender();
+    background(0);
   }
+   
+  translate(0, BOX_SIZE * 3);
+  
+  drawBoard();
+  
+  findGhostPiecePosition();
+  drawGhostPiece();
+
+  drawCurrShape();  
+  drawNextShape();
+  
+  drawBorders();
+  
+  // Draw debugging stuff on top of everything else
+  pushMatrix();
+  translate(200, 40);
+  pushStyle();
+  stroke(255);
+  debug.draw();
+  popStyle();
+  popMatrix();
+  
+  debug.clear();
 }
 
-/* For cheaters
+/**
+ */
+public void drawNextShape(){
+  pushStyle();
+  Shape nextShape = (Shape)nextPieceQueue.peekFront();
+  fill(getColorFromID(nextShape.getColor()));
+  stroke(255);
+  strokeWeight(1);
+  drawShape(nextShape, 20, 0);
+  popStyle();
+}
+
+/* A ghost piece shows where the piece the user
+ * is currently holding will end up.
  */
 public void drawGhostPiece(){
   if(allowDrawingGhost == false){
@@ -530,9 +561,6 @@ public void drawCurrShape(){
   popStyle();
 }
 
-//public void drawPiece(Shape, currShapeCol, currShapeRow){
-//}
-
 /*
  */
 public color getColorFromID(int col){
@@ -547,10 +575,12 @@ public color getColorFromID(int col){
 }
 
 /*
- *
+ * Rotating the shape may fail if rotating the shape results in
+ * a collision with another piece on the board.
  */
-public void rotateShape(){
-
+public void requestRotatePiece(){
+  
+  // We try to rotate the shape, if it fails, we undo the rotation.
   currentShape.rotate();
       
   //
@@ -567,11 +597,12 @@ public void rotateShape(){
   if(DEBUG){
     println("pos: " + pos);
     println("amountToShiftLeft: " + amountToShiftLeft);
-  
     println("amountToShiftRight: " + amountToShiftRight);
     println("emptyLeftSpaces: " + emptyLeftSpaces);
   }
   
+  // If we are allowing the user to rotate the piece, even
+  // if the piece is flush against the wall. 
   if(allowKickBack){
     // TODO: fix this hack
     // If one part of the piece is touching the right border
@@ -579,7 +610,7 @@ public void rotateShape(){
       currShapeCol += amountToShiftRight;
   
       // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
         currShapeCol -= amountToShiftLeft;
       }
     }
@@ -588,13 +619,13 @@ public void rotateShape(){
       currShapeCol -= amountToShiftLeft;
   
       // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
         currShapeCol += amountToShiftLeft;
       }
     }
   }
     
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
     currentShape.unRotate();
   }
 }
@@ -603,29 +634,20 @@ public void rotateShape(){
  */
 public void keyPressed(){
   
-  if(keyCode == KEY_UP && upKeyState == false){
-    rotateShape();
-    upKeyState = true;
+  if(keyCode == KEY_UP){
+    requestRotatePiece();
   }
   
   Keyboard.setKeyDown(keyCode, true);
 }
 
 public void keyReleased(){
-  
-  if(keyCode == KEY_UP){
-    upKeyState = false;
-  }
-  
+ 
   if(keyCode == KEY_SPACE){
-    dropShape();
+    dropPiece();
   }
   
   Keyboard.setKeyDown(keyCode, false);
-}
-
-public void postRender(){
-  debug.clear();
 }
 
 /**
@@ -640,13 +662,12 @@ public void drawBoard(){
   }
 }
 
+/* Draw the board borders
+ */
 public void drawBorders(){
   pushStyle();
   noStroke();
-  fill(256,256,256);
-  //println("sdrf");
-  
-  
+  fill(256, 256, 256);
   
   // Floor
   for(int col = 0; col < NUM_COLS; col++){
@@ -672,21 +693,24 @@ public void drawBox(int col, int row, int _color){
   }
 }
 
-public void drawBackground(){
+
+public void showGamePaused(){
   pushStyle();
-  noFill();
-  strokeWeight(1);
-  stroke(255, 32);
-  
-  // Draw a translucent grid
-  for(int cols = 0; cols < NUM_COLS; cols++){
-    for(int rows = 0; rows < NUM_ROWS; rows++){
-      rect(cols * BOX_SIZE, rows * BOX_SIZE, BOX_SIZE, BOX_SIZE);
-    }
-  }
+  fill(128, 0, 0);
+  noStroke();
+  rect(0, BOX_SIZE * 3, width - 200, height);
+  PFont font = createFont("verdana", 50);
+  textFont(font);
+  textAlign(CENTER, CENTER);
+  fill(0, 0, 128);
+  text("Game Paused", width/2, height/2);
   popStyle();
 }
 
+/*
+ * Overlay a semi-transparent layer on top of the board to hint
+ * the game is no longer playable.
+ */
 public void showGameOver(){
   pushStyle();
   fill(128, 128);
@@ -698,4 +722,5 @@ public void showGameOver(){
   fill(128, 0, 0);
   text("Game Over", width/2, height/2);
   popStyle();
+  didDrawGameOver = true;
 }

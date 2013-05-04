@@ -6,7 +6,7 @@ public class SShape implements Shape{
   int spacesOnLeft;
   
   SShape(){
-    shape = new int[3][3];
+    shape = null;
     state = 0;
     changeShape();
   }

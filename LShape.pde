@@ -6,7 +6,7 @@ public class LShape implements Shape{
   int spacesOnLeft;
   
   LShape(){
-    shape = new int[3][3];
+    shape = null;
     state = 0;
     changeShape();
   }

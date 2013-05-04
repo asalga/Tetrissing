@@ -17,13 +17,15 @@ To Build:
 Then point your browser to: http://localhost:8000
 
 Known Issues:
+ - Fix moving piece past bounds when first created
  - Make good UI
  - User can slide piece along floor
  - Add animation on line clear
- - Add audio
  - Fix dropping piece while pause
  - Allow infinite rotate option
  - Fix moving piece faster by holding down both left and right and
    releasing one key
  - Add chain reaction feature
  - Fix drawing drop streak
+ - Clean up audio and get it to work with JavaScript
+ - Do not play drop sound on line clear

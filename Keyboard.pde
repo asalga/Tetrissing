@@ -30,7 +30,7 @@ public static class Keyboard{
   }
   
   /*
-   *
+   * TODO: if the key was locked and is down, then we unlock it, it needs to 'pop' back up.
    */
   public static void unlockKeys(int[] keys){
     for(int k : keys){

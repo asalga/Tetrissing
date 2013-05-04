@@ -248,21 +248,14 @@ public boolean checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   return false;
 }
 
+
 /**
 */
-public void moveShapeLeft(){
-  currShapeCol--;
+public void moveSideways(int amt){
+  currShapeCol += amt;
   
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-    currShapeCol++;
-  }
-}
-
-void moveShapeRight(){
-  currShapeCol++;
-  
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-    currShapeCol--;
+    currShapeCol -= amt;
   }
 }
     
@@ -309,7 +302,7 @@ public void update(){
   else if(Keyboard.isKeyDown(KEY_LEFT) == false && moveBuffer > 0f){
     leftMoveTicker.reset();
     moveBuffer = 0;
-    moveShapeLeft();
+    moveSideways(-1);
   }
   // If the user is holding down the left key
   else if( Keyboard.isKeyDown(KEY_LEFT) ){
@@ -325,8 +318,7 @@ public void update(){
       // back if a collision occurred.
       if(moveBuffer > 1.0f){
         moveBuffer -= 1.0f;
-        
-        moveShapeLeft();
+        moveSideways(-1);
       }
     }
   }
@@ -343,7 +335,7 @@ public void update(){
   else if(Keyboard.isKeyDown(KEY_RIGHT) == false && rightBuffer > 0f){
     rightMoveTicker.reset();
     rightBuffer = 0;
-    moveShapeRight();
+    moveSideways(1);
   }
   // If the user is holding down the left key
   else if( Keyboard.isKeyDown(KEY_RIGHT) ){
@@ -358,7 +350,7 @@ public void update(){
       // back if a collision occurred.
       if(rightBuffer > 1.0f){
         rightBuffer -= 1.0f;
-        moveShapeRight();
+        moveSideways(1);
       }
     }
   }

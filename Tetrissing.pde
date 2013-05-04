@@ -634,20 +634,15 @@ public void requestRotatePiece(){
  */
 public void keyPressed(){
   
-  if(keyCode == KEY_UP && upKeyState == false){
+  if(keyCode == KEY_UP){
     requestRotatePiece();
-    upKeyState = true;
   }
   
   Keyboard.setKeyDown(keyCode, true);
 }
 
 public void keyReleased(){
-  
-  if(keyCode == KEY_UP){
-    upKeyState = false;
-  }
-  
+ 
   if(keyCode == KEY_SPACE){
     dropPiece();
   }

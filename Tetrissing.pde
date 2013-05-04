@@ -42,6 +42,8 @@ int ghostShapeCol;
 int ghostShapeRow;
 
 boolean hasLostGame = false;
+boolean didDrawGameOver = false;
+
 
 final float TAP_LEN_IN_SEC = 0.1f;
 boolean holdingDownLeft = false;
@@ -468,9 +470,13 @@ public int getRandomInt(int minVal, int maxVal) {
  */
 public void draw(){
   
+  if(didDrawGameOver){
+    return;
+  }
+
   if(hasLostGame){
     showGameOver();
-    noLoop();
+    return;
   }
   
   if(Keyboard.isKeyDown(KEY_P) ){
@@ -721,4 +727,5 @@ public void showGameOver(){
   fill(128, 0, 0);
   text("Game Over", width/2, height/2);
   popStyle();
+  didDrawGameOver = true;
 }

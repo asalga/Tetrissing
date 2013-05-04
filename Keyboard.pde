@@ -3,14 +3,19 @@
  */
 public static class Keyboard{
   
-  // All they keys that are currently locked.
-  private static boolean[] lockedKeys = new boolean[128];
+  private static final int NUM_KEYS = 128;
+  
+  // Locking keys are good for toggling things.
+  // After locking a key, when a user presses and releases a key, it will register and
+  // being 'down' (even though it has been released). Once the user presses it again,
+  // it will register as 'up'.
+  private static boolean[] lockableKeys = new boolean[NUM_KEYS];
   
   // Use char since we only need to store 2 states (0, 1)
-  private static char[] lockedKeyPresses = new char[128];
+  private static char[] lockedKeyPresses = new char[NUM_KEYS];
   
   // The key states, true if key is down, false if key is up.
-  private static boolean[] keys = new boolean[128];
+  private static boolean[] keys = new boolean[NUM_KEYS];
   
   /*
    * The specified keys will stay down even after user releases the key.
@@ -18,7 +23,9 @@ public static class Keyboard{
    */
   public static  void lockKeys(int[] keys){
     for(int k : keys){
-      lockedKeys[k] = true;
+      if( k > -1 && k < NUM_KEYS){
+        lockableKeys[k] = true;
+      }
     }
   }
   
@@ -27,7 +34,9 @@ public static class Keyboard{
    */
   public static void unlockKeys(int[] keys){
     for(int k : keys){
-      lockedKeys[k] = false;
+      if(k > -1 && k < NUM_KEYS){
+        lockableKeys[k] = false;
+      }
     }
   }
   
@@ -36,17 +45,31 @@ public static class Keyboard{
    */
   public static void setKeyDown(int key, boolean state){
     
-    if(key > 127){
+    if(key <= -1 || key >= NUM_KEYS){
       return;
     }
     
-    // If the key is locked, and the user just released the key, add to our internal count
-    if(lockedKeys[key] && state == false){
-      lockedKeyPresses[key]++;
-      if(lockedKeyPresses[key] == 2){
-          keys[key] = false;
-          lockedKeyPresses[key] = 0;
-      }
+    // If the key is lockable, as soon as we tell the class the key is down, we lock it.
+    if( lockableKeys[key] ){
+    
+        // 0 - key is up.
+        // 1 - key is down
+        if( state == true ){
+          lockedKeyPresses[key]++; // 1, 
+          keys[key] = true;
+        }
+        // We tell the key that we released
+        else{
+          // But is this the second release or the first?
+          if(lockedKeyPresses[key] == 1){
+            // first release, do nothing
+          }
+          // On the second release, let go of the key.
+          else if(lockedKeyPresses[key] == 2){
+            lockedKeyPresses[key] = 0;
+            keys[key] = false;
+          }
+        }
     }
     else{
       keys[key] = state;

@@ -152,6 +152,9 @@ public void setup(){
   // K = kickback
   Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K});
   
+  // Assume the user wants kickback
+  Keyboard.setKeyDown(KEY_K, true);
+  
   numLines = 0;
    
   for(int c = 0; c < NUM_COLS; c++){
@@ -164,9 +167,6 @@ public void setup(){
    
   createBorders();
 }
-
-
-
 
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
@@ -245,8 +245,6 @@ public boolean checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   
   return false;
 }
-
-
 
 /**
 */
@@ -368,10 +366,14 @@ public void update(){
   //debug.addString("FPS:" + (int)frameRate);
   debug.addString("Score: " + score);
   debug.addString("----------------");
-  debug.addString("F - Toggle Fade effect");
-  debug.addString("G - Toggle Ghost piece");
-  debug.addString("K - Toggle Kick back");
+  debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
+  debug.addString("G - Toggle Ghost piece ");
+  debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
   debug.addString("P - Pause game");
+}
+
+public String getOnStr(boolean b){
+  return b ? "(on)" : "(off)";
 }
 
 /*

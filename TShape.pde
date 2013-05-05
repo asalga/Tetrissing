@@ -1,52 +1,10 @@
-public class TShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class TShape extends Shape{
   
   TShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = OLIVE;  
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnRight;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    
-    if(state > 3){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return OLIVE;
   }
   
   public void changeShape(){

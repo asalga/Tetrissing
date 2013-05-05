@@ -1,54 +1,12 @@
-public class ZShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class ZShape extends Shape{
   
   ZShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 2;
+    _color = CYAN;
     changeShape();
   }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1){
-      state = 0;
-    }
     
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return CYAN;
-  }
-  
   public void changeShape(){
     if(state == 0){
       spacesOnRight = 0;

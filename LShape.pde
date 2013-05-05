@@ -16,20 +16,20 @@ public class LShape extends Shape{
                             {1, 0, 0}
                           };
     }
-    else if(state == 2){
-      spacesOnRight = 0;
-      spacesOnLeft = 0;
-      shape = new int[][] { {0, 0, 1},
-                            {1, 1, 1},
-                            {0, 0, 0}
-                          };
-    }
     else if(state == 1){
       spacesOnRight = 1;
       spacesOnLeft = 0;
       shape = new int[][] { {1, 1, 0},
                             {0, 1, 0},
                             {0, 1, 0}
+                          };
+    }
+    else if(state == 2){
+      spacesOnRight = 0;
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 1},
+                            {1, 1, 1},
+                            {0, 0, 0}
                           };
     }
     else if(state == 3){

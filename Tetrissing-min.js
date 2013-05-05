@@ -54,6 +54,9 @@ float rightBuffer = 0f;
 
 float blocksPerSecond = 10.0f;
 
+
+boolean isMuted = true;
+
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -152,10 +155,12 @@ public void setup(){
   // G = ghost
   // F = fade
   // K = kickback
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K});
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K, KEY_M});
   
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
+  
+  Keyboard.setKeyDown(KEY_M, true);
   
   numLines = 0;
    
@@ -248,21 +253,14 @@ public boolean checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   return false;
 }
 
+
 /**
 */
-public void moveShapeLeft(){
-  currShapeCol--;
+public void moveSideways(int amt){
+  currShapeCol += amt;
   
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-    currShapeCol++;
-  }
-}
-
-void moveShapeRight(){
-  currShapeCol++;
-  
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-    currShapeCol--;
+    currShapeCol -= amt;
   }
 }
     
@@ -309,7 +307,7 @@ public void update(){
   else if(Keyboard.isKeyDown(KEY_LEFT) == false && moveBuffer > 0f){
     leftMoveTicker.reset();
     moveBuffer = 0;
-    moveShapeLeft();
+    moveSideways(-1);
   }
   // If the user is holding down the left key
   else if( Keyboard.isKeyDown(KEY_LEFT) ){
@@ -325,8 +323,7 @@ public void update(){
       // back if a collision occurred.
       if(moveBuffer > 1.0f){
         moveBuffer -= 1.0f;
-        
-        moveShapeLeft();
+        moveSideways(-1);
       }
     }
   }
@@ -343,7 +340,7 @@ public void update(){
   else if(Keyboard.isKeyDown(KEY_RIGHT) == false && rightBuffer > 0f){
     rightMoveTicker.reset();
     rightBuffer = 0;
-    moveShapeRight();
+    moveSideways(1);
   }
   // If the user is holding down the left key
   else if( Keyboard.isKeyDown(KEY_RIGHT) ){
@@ -358,7 +355,7 @@ public void update(){
       // back if a collision occurred.
       if(rightBuffer > 1.0f){
         rightBuffer -= 1.0f;
-        moveShapeRight();
+        moveSideways(1);
       }
     }
   }
@@ -371,6 +368,7 @@ public void update(){
   debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
   debug.addString("G - Toggle Ghost piece ");
   debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
+  debug.addString("M - Mute " + getOnStr(Keyboard.isKeyDown(KEY_M)));
   debug.addString("P - Pause game");
 }
 
@@ -401,8 +399,10 @@ public void addPieceToBoard(Shape shape){
     }
   }
   
-  dropPiece.play();
-  dropPiece.rewind();
+  if(Keyboard.isKeyDown(KEY_M) == false){
+    dropPiece.play();
+    dropPiece.rewind();
+  }
   
   removeFilledLines();
   
@@ -427,8 +427,10 @@ public void removeFilledLines(){
       score += 100;
       moveAllRowsDown(row);
       
-      clearLine.play();
-      clearLine.rewind();
+      if(Keyboard.isKeyDown(KEY_M) == false){
+        clearLine.play();
+        clearLine.rewind();
+      }
       
       // Start from the bottom again
       row = NUM_ROWS - 1;
@@ -773,65 +775,17 @@ class Debugger{
   }
 }
 
-public class JShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnLeft;
-  int spacesOnRight;
-  
+public class JShape extends Shape{
+    
   JShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = ORANGE;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 3 ){
-      state = 0;
-    }
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return ORANGE;
   }
   
   public void changeShape(){
-    if(state == 1){
-      spacesOnLeft = 0;
-      spacesOnRight = 1;
-      shape = new int[][] { {0, 1, 0},
-                            {0, 1, 0},
-                            {1, 1, 0}
-                          };
-    }
-    else if(state == 0){
+    if(state == 0){
       spacesOnLeft = 0;
       spacesOnRight = 0;
       shape = new int[][] { {0, 0, 0},
@@ -839,12 +793,12 @@ public class JShape implements Shape{
                             {0, 0, 1}
                           };
     }
-    else if(state == 3){
-      spacesOnLeft = 1;
-      spacesOnRight = 0;
-      shape = new int[][] { {0, 1, 1},
+    else if(state == 1){
+      spacesOnLeft = 0;
+      spacesOnRight = 1;
+      shape = new int[][] { {0, 1, 0},
                             {0, 1, 0},
-                            {0, 1, 0}
+                            {1, 1, 0}
                           };
     }
     else if(state == 2){
@@ -855,73 +809,32 @@ public class JShape implements Shape{
                             {0, 0, 0}
                           };
     }
+    else if(state == 3){
+      spacesOnLeft = 1;
+      spacesOnRight = 0;
+      shape = new int[][] { {0, 1, 1},
+                            {0, 1, 0},
+                            {0, 1, 0}
+                          };
+    }
   }
 }
-public class LShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class LShape extends Shape{
   
   LShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = MAGENTA;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 3 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return MAGENTA;
   }
   
   public void changeShape(){
-    if(state == 3){
-      spacesOnRight = 0;
-      spacesOnLeft = 1;
-      shape = new int[][] { {0, 1, 0},
-                            {0, 1, 0},
-                            {0, 1, 1}
-                          };
-    }
-    else if(state == 2){
-      spacesOnRight = 0;
+    if(state == 0){
       spacesOnLeft = 0;
-      shape = new int[][] { {0, 0, 1},
+      spacesOnRight = 0;
+      shape = new int[][] { {0, 0, 0},
                             {1, 1, 1},
-                            {0, 0, 0}
+                            {1, 0, 0}
                           };
     }
     else if(state == 1){
@@ -932,12 +845,20 @@ public class LShape implements Shape{
                             {0, 1, 0}
                           };
     }
-    else if(state == 0){
-      spacesOnLeft = 0;
+    else if(state == 2){
       spacesOnRight = 0;
-      shape = new int[][] { {0, 0, 0},
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 1},
                             {1, 1, 1},
-                            {1, 0, 0}
+                            {0, 0, 0}
+                          };
+    }
+    else if(state == 3){
+      spacesOnRight = 0;
+      spacesOnLeft = 1;
+      shape = new int[][] { {0, 1, 0},
+                            {0, 1, 0},
+                            {0, 1, 1}
                           };
     }
   }
@@ -976,17 +897,59 @@ public class Queue<T>{
 }
 /**
 */
-public interface Shape{
-  public int[][] getArr();
+public class Shape{
   
-  public void rotate();
-  public void unRotate();
+  int[][] shape;
+  int spacesOnRight;
+  int spacesOnLeft;
+  int state;
+  int size;
+  int numStates;
+  int _color;
   
-  public int getColor();
-  public int getSize();
+  public Shape(){
+    state = 0;
+  }
+
+  public int[][] getArr(){
+    return shape;
+  }
+  public void changeShape(){
+  }
   
-  public int getEmptySpacesOnRight();
-  public int getEmptySpacesOnLeft();
+  public void rotate(){
+    state++;
+    if(state >= numStates){
+      state = 0;
+    }
+    changeShape();
+  }
+  
+
+  
+  public void unRotate(){
+    state--;
+    if(state < 0){
+      state = numStates - 1;
+    }
+    changeShape();
+  }
+  
+  public int getSize(){
+    return size;
+  }
+  
+  public int getColor(){
+    return _color;
+  }
+  
+  public int getEmptySpacesOnRight(){
+    return spacesOnRight;
+  }
+  
+  public int getEmptySpacesOnLeft(){
+    return spacesOnLeft;
+  }
 }
 /**
  * A ticker class to manage animation timing.
@@ -1048,54 +1011,13 @@ public class Ticker{
     totalTime += deltaTime;
   }
 }
-public class IShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class IShape extends Shape{
   
   IShape(){
-    shape = null;
-    state = 0;
+    size = 4;
+    numStates = 2;
+    _color = RED;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 4;
-  }
-  
-  public int getColor(){
-    return RED;
   }
   
   public void changeShape(){
@@ -1278,90 +1200,27 @@ final int KEY_w = 119;
 final int KEY_x = 120;
 final int KEY_y = 121;
 final int KEY_z = 122;
-public class OShape implements Shape{
-  int[][] shape;
-  
+public class OShape extends Shape{
+ 
   OShape(){
+    size = 2;
+    numStates = 1;
+    _color = BLUE;
     shape = new int[][]{{1, 1},
                         {1, 1}};
   }
-  
-  // This shape is perfectly packed tight, there is no empty space
-  public int getEmptySpacesOnRight(){
-    return 0;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return 0;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){}
-  public void unRotate(){}
-  
-  public int getSize(){
-    return 2;
-  }
-  
-  public int getColor(){
-    return BLUE;
-  }
 }
-public class SShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class SShape extends Shape{
   
   SShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 2;
+    _color = GREEN; 
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return GREEN;
   }
   
   public void changeShape(){
+
     if(state == 0){
       spacesOnRight = 0;
       spacesOnLeft = 0;
@@ -1380,55 +1239,13 @@ public class SShape implements Shape{
     }
   }
 }
-public class TShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class TShape extends Shape{
   
   TShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = OLIVE;  
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnRight;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    
-    if(state > 3){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return OLIVE;
   }
   
   public void changeShape(){
@@ -1466,57 +1283,15 @@ public class TShape implements Shape{
     }
   }
 }
-public class ZShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class ZShape extends Shape{
   
   ZShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 2;
+    _color = CYAN;
     changeShape();
   }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1){
-      state = 0;
-    }
     
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return CYAN;
-  }
-  
   public void changeShape(){
     if(state == 0){
       spacesOnRight = 0;

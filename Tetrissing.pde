@@ -54,6 +54,9 @@ float rightBuffer = 0f;
 
 float blocksPerSecond = 10.0f;
 
+
+boolean isMuted = true;
+
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -152,10 +155,12 @@ public void setup(){
   // G = ghost
   // F = fade
   // K = kickback
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K});
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K, KEY_M});
   
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
+  
+  Keyboard.setKeyDown(KEY_M, true);
   
   numLines = 0;
    
@@ -363,6 +368,7 @@ public void update(){
   debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
   debug.addString("G - Toggle Ghost piece ");
   debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
+  debug.addString("M - Mute " + getOnStr(Keyboard.isKeyDown(KEY_M)));
   debug.addString("P - Pause game");
 }
 
@@ -393,8 +399,10 @@ public void addPieceToBoard(Shape shape){
     }
   }
   
-  dropPiece.play();
-  dropPiece.rewind();
+  if(Keyboard.isKeyDown(KEY_M) == false){
+    dropPiece.play();
+    dropPiece.rewind();
+  }
   
   removeFilledLines();
   
@@ -419,8 +427,10 @@ public void removeFilledLines(){
       score += 100;
       moveAllRowsDown(row);
       
-      clearLine.play();
-      clearLine.rewind();
+      if(Keyboard.isKeyDown(KEY_M) == false){
+        clearLine.play();
+        clearLine.rewind();
+      }
       
       // Start from the bottom again
       row = NUM_ROWS - 1;

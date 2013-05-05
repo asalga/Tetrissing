@@ -1,68 +1,19 @@
-public class LShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class LShape extends Shape{
   
   LShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = MAGENTA;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 3 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return MAGENTA;
   }
   
   public void changeShape(){
-    if(state == 3){
-      spacesOnRight = 0;
-      spacesOnLeft = 1;
-      shape = new int[][] { {0, 1, 0},
-                            {0, 1, 0},
-                            {0, 1, 1}
-                          };
-    }
-    else if(state == 2){
-      spacesOnRight = 0;
+    if(state == 0){
       spacesOnLeft = 0;
-      shape = new int[][] { {0, 0, 1},
+      spacesOnRight = 0;
+      shape = new int[][] { {0, 0, 0},
                             {1, 1, 1},
-                            {0, 0, 0}
+                            {1, 0, 0}
                           };
     }
     else if(state == 1){
@@ -73,12 +24,20 @@ public class LShape implements Shape{
                             {0, 1, 0}
                           };
     }
-    else if(state == 0){
-      spacesOnLeft = 0;
+    else if(state == 2){
       spacesOnRight = 0;
-      shape = new int[][] { {0, 0, 0},
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 1},
                             {1, 1, 1},
-                            {1, 0, 0}
+                            {0, 0, 0}
+                          };
+    }
+    else if(state == 3){
+      spacesOnRight = 0;
+      spacesOnLeft = 1;
+      shape = new int[][] { {0, 1, 0},
+                            {0, 1, 0},
+                            {0, 1, 1}
                           };
     }
   }

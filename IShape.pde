@@ -1,51 +1,10 @@
-public class IShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class IShape extends Shape{
   
   IShape(){
-    shape = null;
-    state = 0;
+    size = 4;
+    numStates = 2;
+    _color = RED;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 4;
-  }
-  
-  public int getColor(){
-    return RED;
   }
   
   public void changeShape(){

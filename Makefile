@@ -15,10 +15,11 @@ minify:
 	rm -fr tools-bin
 
 # 
-publish:
-	git checkout gh-pages
-	git merge master
-	minify
+publish: minify
+	#git checkout gh-pages
+	#git merge master
+	#minify
 	git add Tetrissing-min.js
+	git commit -m"publishing"
 	git push
 

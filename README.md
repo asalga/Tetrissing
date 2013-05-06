@@ -7,17 +7,17 @@ Keys:
  - Left and Right arrow keys to move piece
  - Up to rotate piece
  - Down to move piece down faster
- - G,F,K - toggle features
+ - G,F,K,M - toggle some features
  - P for pause
  - Space to immediately drop piece
 
 To Build:
  $ make
  $ python -m SimpleHTTPServer
-Then point your browser to: http://localhost:8000
+Then go to http://localhost:8080
 
 Known Issues:
- - Fix moving piece past bounds when first created
+ - Add sprite-based text
  - Make good UI
  - User can slide piece along floor
  - Add animation on line clear
@@ -27,5 +27,5 @@ Known Issues:
    releasing one key
  - Add chain reaction feature
  - Fix drawing drop streak
- - Clean up audio and get it to work with JavaScript
  - Do not play drop sound on line clear
+ - Fix audio for Firefox

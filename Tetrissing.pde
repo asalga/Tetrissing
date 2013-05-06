@@ -1,9 +1,8 @@
 import ddf.minim.*;
 
-Minim minim;
-AudioPlayer dropPiece;
-AudioPlayer clearLine;
 
+
+SoundManager soundManager;
 final boolean DEBUG = false;
 
 final int T_SHAPE = 0;
@@ -24,7 +23,14 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
+
 final int NUM_PIECES = 7;
+
+Ticker clearLineTicker;
+
+boolean clearingLines = false;
+
+int START_ROW = 24;
 
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
@@ -55,8 +61,6 @@ float rightBuffer = 0f;
 float blocksPerSecond = 10.0f;
 
 
-boolean isMuted = true;
-
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -65,12 +69,12 @@ int score;
 
 // Add 2 for left and right borders and 1 for floor
 int NUM_COLS = 10 + 2;
-int NUM_ROWS = 22 + 1;
+int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
 
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 3);
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4);
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -124,23 +128,15 @@ public Shape getRandomShape(){
   else                   return new SShape();
 }
 
-public void stop(){
-  dropPiece.close();
-  minim.stop();
-  super.stop();
-}
-
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
-  
-  // Audio Stuff
-  minim = new Minim(this);
-  dropPiece = minim.loadFile("audio/dropPiece.wav");
-  clearLine = minim.loadFile("audio/clearLine.wav");
+  soundManager = new SoundManager(this);
+  soundManager.init();
   
   backgroundImg = loadImage("images/background.jpg");
   
+  clearLineTicker = new Ticker();
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
@@ -160,7 +156,7 @@ public void setup(){
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
   
-  Keyboard.setKeyDown(KEY_M, true);
+  //Keyboard.setKeyDown(KEY_M, true);
   
   numLines = 0;
    
@@ -177,7 +173,12 @@ public void setup(){
 
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
-  currShapeRow = -currentShape.getSize();
+  
+  // How many rows do we have?
+  int y = NUM_ROWS - START_ROW;
+  
+  currShapeRow =y;
+  //y;//- currentShape.getSize()/2;
   currShapeCol = NUM_COLS/2;
   
   nextPieceQueue.pushBack(getRandomShape());
@@ -293,12 +294,12 @@ public void update(){
   allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
   
   if(Keyboard.isKeyDown(KEY_LEFT) && Keyboard.isKeyDown(KEY_RIGHT)){
-    return;
+    
   }
   
   // If we just let got of the left key, but we were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
-  if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true){
+  else if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true){
     holdingDownLeft = false;
     leftMoveTicker.reset();
     moveBuffer = 0f;
@@ -331,7 +332,7 @@ public void update(){
     
   // If we just let got of the left key, but we were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
-  if( Keyboard.isKeyDown(KEY_RIGHT) == false && holdingDownRight == true){
+  else if( Keyboard.isKeyDown(KEY_RIGHT) == false && holdingDownRight == true){
     holdingDownRight = false;
     rightMoveTicker.reset();
     rightBuffer = 0f;
@@ -388,7 +389,7 @@ public void addPieceToBoard(Shape shape){
     hasLostGame = true;
     return;
   }
-    
+  
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -399,15 +400,45 @@ public void addPieceToBoard(Shape shape){
     }
   }
   
-  if(Keyboard.isKeyDown(KEY_M) == false){
-    dropPiece.play();
-    dropPiece.rewind();
+  int numLinesToClear = getNumLinesToClear();
+  
+  switch(numLinesToClear){
+    case 0: soundManager.playDropPieceSound(); break;
+    case 1: score += 100;break;
+    case 2: score += 250;break;
+    case 3: score += 450;break;
+    case 4: soundManager.playClearLinesSound();score += 800;break;
+    default: break;
   }
   
   removeFilledLines();
   
   createPiece();
 }
+
+/**
+ */
+public int getNumLinesToClear(){
+  int numLinesToClear = 0;
+  
+  // Don't include the floor
+  for(int row = NUM_ROWS - 2; row > 0; row--){
+    
+    boolean lineFull = true;
+    for(int col = 1; col < NUM_COLS - 1; col++){
+      if(grid[col][row] == EMPTY){
+        lineFull = false;
+      }
+    }
+    
+    if(lineFull){
+      numLinesToClear++;
+    }
+  }
+  
+  return numLinesToClear;
+}
+
 
 /* Start from the bottom row. If we found a full line,
  * copy everythng from the row above that line to
@@ -416,21 +447,16 @@ public void addPieceToBoard(Shape shape){
 public void removeFilledLines(){
   for(int row = NUM_ROWS - 2; row > 0; row--){
     
-    boolean isFull = true;
+    boolean isLineFull = true;
     for(int col = 1; col < NUM_COLS - 1; col++){
       if(grid[col][row] == EMPTY){
-        isFull = false;
+        isLineFull = false;
       }
     }
     
-    if(isFull){
-      score += 100;
+    if(isLineFull){
       moveAllRowsDown(row);
-      
-      if(Keyboard.isKeyDown(KEY_M) == false){
-        clearLine.play();
-        clearLine.rewind();
-      }
+      clearingLines = true;
       
       // Start from the bottom again
       row = NUM_ROWS - 1;
@@ -471,7 +497,7 @@ public int getRandomInt(int minVal, int maxVal) {
 /**
  */
 public void draw(){
-  
+    
   if(didDrawGameOver){
     return;
   }
@@ -484,6 +510,17 @@ public void draw(){
   if(Keyboard.isKeyDown(KEY_P) ){
     showGamePaused();
     return;
+  }
+  
+  if(clearingLines){
+    clearLineTicker.tick();
+    if(clearLineTicker.getTotalTime() < 0.5f){
+      return;
+    }
+    else{
+      clearLineTicker.reset();
+      clearingLines = false;
+    }
   }
     
   update();
@@ -499,7 +536,18 @@ public void draw(){
     background(0);
   }
    
+  //translate(0, -BOX_SIZE * 4);
+  translate(0, BOX_SIZE * 4);
+  
+  
+  pushMatrix();
   translate(0, BOX_SIZE * 3);
+  pushStyle();
+  fill(45, 128);
+  rect(0, 0, BOX_SIZE* 300, BOX_SIZE);
+  popStyle();
+  popMatrix();
+  
   
   drawBoard();
   
@@ -507,10 +555,15 @@ public void draw(){
   drawGhostPiece();
 
   drawCurrShape();  
-  drawNextShape();
+
   
   drawBorders();
   
+  pushMatrix();
+  translate(-100, 200);
+  drawNextShape();
+  popMatrix();
+    
   // Draw debugging stuff on top of everything else
   pushMatrix();
   translate(200, 40);
@@ -698,7 +751,7 @@ public void drawBox(int col, int row, int _color){
 
 public void showGamePaused(){
   pushStyle();
-  fill(128, 0, 0);
+  fill(128, 0, 0, 1);
   noStroke();
   rect(0, BOX_SIZE * 3, width - 200, height);
   PFont font = createFont("verdana", 50);

@@ -4,9 +4,7 @@ Tetrissing
 Tetris in Processing
 
 Keys:
- - Left and Right arrow keys to move piece
- - Up to rotate piece
- - Down to move piece down faster
+ - Arrow keys to transform piece
  - G,F,K,M - toggle some features
  - P for pause
  - Space to immediately drop piece
@@ -27,5 +25,4 @@ Known Issues:
    releasing one key
  - Add chain reaction feature
  - Fix drawing drop streak
- - Do not play drop sound on line clear
  - Fix audio for Firefox

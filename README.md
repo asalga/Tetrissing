@@ -10,9 +10,9 @@ Keys:
  - Space to immediately drop piece
 
 To Build:
- $ make
- $ python -m SimpleHTTPServer
-Then go to http://localhost:8080
+ $ make  
+ $ python -m SimpleHTTPServer  
+Then go to http://localhost:8080 
 
 Known Issues:
  - Add sprite-based text

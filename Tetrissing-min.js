@@ -1,15 +1,8 @@
 import ddf.minim.*;
 
-<<<<<<< HEAD
-Minim minim;
-AudioPlayer dropPiece;
-AudioPlayer clearLine;
-
-=======
 
 
 SoundManager soundManager;
->>>>>>> master
 final boolean DEBUG = false;
 
 final int T_SHAPE = 0;
@@ -30,10 +23,6 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
-<<<<<<< HEAD
-final int NUM_PIECES = 7;
-
-=======
 
 final int NUM_PIECES = 7;
 
@@ -43,7 +32,6 @@ boolean clearingLines = false;
 
 int START_ROW = 24;
 
->>>>>>> master
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
 Shape currentShape;
@@ -73,11 +61,6 @@ float rightBuffer = 0f;
 float blocksPerSecond = 10.0f;
 
 
-<<<<<<< HEAD
-boolean isMuted = true;
-
-=======
->>>>>>> master
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
@@ -86,20 +69,12 @@ int score;
 
 // Add 2 for left and right borders and 1 for floor
 int NUM_COLS = 10 + 2;
-<<<<<<< HEAD
-int NUM_ROWS = 22 + 1;
-=======
 int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
->>>>>>> master
 
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-<<<<<<< HEAD
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 3);
-=======
 final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4);
->>>>>>> master
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -151,15 +126,6 @@ public Shape getRandomShape(){
   if(randInt == J_SHAPE) return new JShape();
   if(randInt == I_SHAPE) return new IShape();
   else                   return new SShape();
-<<<<<<< HEAD
-}
-
-public void stop(){
-  dropPiece.close();
-  minim.stop();
-  super.stop();
-=======
->>>>>>> master
 }
 
 public void setup(){
@@ -167,11 +133,6 @@ public void setup(){
   debug = new Debugger();
   soundManager = new SoundManager(this);
   soundManager.init();
-  
-  // Audio Stuff
-  minim = new Minim(this);
-  dropPiece = minim.loadFile("audio/dropPiece.wav");
-  clearLine = minim.loadFile("audio/clearLine.wav");
   
   backgroundImg = loadImage("images/background.jpg");
   
@@ -195,11 +156,7 @@ public void setup(){
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
   
-<<<<<<< HEAD
-  Keyboard.setKeyDown(KEY_M, true);
-=======
   //Keyboard.setKeyDown(KEY_M, true);
->>>>>>> master
   
   numLines = 0;
    
@@ -216,16 +173,12 @@ public void setup(){
 
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
-<<<<<<< HEAD
-  currShapeRow = -currentShape.getSize();
-=======
   
   // How many rows do we have?
   int y = NUM_ROWS - START_ROW;
   
   currShapeRow =y;
   //y;//- currentShape.getSize()/2;
->>>>>>> master
   currShapeCol = NUM_COLS/2;
   
   nextPieceQueue.pushBack(getRandomShape());
@@ -436,11 +389,7 @@ public void addPieceToBoard(Shape shape){
     hasLostGame = true;
     return;
   }
-<<<<<<< HEAD
-    
-=======
   
->>>>>>> master
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -451,11 +400,6 @@ public void addPieceToBoard(Shape shape){
     }
   }
   
-<<<<<<< HEAD
-  if(Keyboard.isKeyDown(KEY_M) == false){
-    dropPiece.play();
-    dropPiece.rewind();
-=======
   int numLinesToClear = getNumLinesToClear();
   
   switch(numLinesToClear){
@@ -465,7 +409,6 @@ public void addPieceToBoard(Shape shape){
     case 3: score += 450;break;
     case 4: soundManager.playClearLinesSound();score += 800;break;
     default: break;
->>>>>>> master
   }
   
   removeFilledLines();
@@ -511,19 +454,9 @@ public void removeFilledLines(){
       }
     }
     
-<<<<<<< HEAD
-    if(isFull){
-      score += 100;
-=======
     if(isLineFull){
->>>>>>> master
       moveAllRowsDown(row);
       clearingLines = true;
-      
-      if(Keyboard.isKeyDown(KEY_M) == false){
-        clearLine.play();
-        clearLine.rewind();
-      }
       
       // Start from the bottom again
       row = NUM_ROWS - 1;
@@ -564,11 +497,7 @@ public int getRandomInt(int minVal, int maxVal) {
 /**
  */
 public void draw(){
-<<<<<<< HEAD
-  
-=======
     
->>>>>>> master
   if(didDrawGameOver){
     return;
   }
@@ -582,8 +511,6 @@ public void draw(){
     showGamePaused();
     return;
   }
-<<<<<<< HEAD
-=======
   
   if(clearingLines){
     clearLineTicker.tick();
@@ -595,7 +522,6 @@ public void draw(){
       clearingLines = false;
     }
   }
->>>>>>> master
     
   update();
   
@@ -610,9 +536,6 @@ public void draw(){
     background(0);
   }
    
-<<<<<<< HEAD
-  translate(0, BOX_SIZE * 3);
-=======
   //translate(0, -BOX_SIZE * 4);
   translate(0, BOX_SIZE * 4);
   
@@ -625,7 +548,6 @@ public void draw(){
   popStyle();
   popMatrix();
   
->>>>>>> master
   
   drawBoard();
   
@@ -633,12 +555,6 @@ public void draw(){
   drawGhostPiece();
 
   drawCurrShape();  
-<<<<<<< HEAD
-  drawNextShape();
-  
-  drawBorders();
-  
-=======
 
   
   drawBorders();
@@ -648,7 +564,6 @@ public void draw(){
   drawNextShape();
   popMatrix();
     
->>>>>>> master
   // Draw debugging stuff on top of everything else
   pushMatrix();
   translate(200, 40);
@@ -836,11 +751,7 @@ public void drawBox(int col, int row, int _color){
 
 public void showGamePaused(){
   pushStyle();
-<<<<<<< HEAD
-  fill(128, 0, 0);
-=======
   fill(128, 0, 0, 1);
->>>>>>> master
   noStroke();
   rect(0, BOX_SIZE * 3, width - 200, height);
   PFont font = createFont("verdana", 50);
@@ -848,28 +759,7 @@ public void showGamePaused(){
   textAlign(CENTER, CENTER);
   fill(0, 0, 128);
   text("Game Paused", width/2, height/2);
-<<<<<<< HEAD
-=======
   popStyle();
-}
-
-/*
- * Overlay a semi-transparent layer on top of the board to hint
- * the game is no longer playable.
- */
-public void showGameOver(){
-  pushStyle();
-  fill(128, 128);
-  noStroke();
-  rect(0, 0, width, height);
-  PFont font = createFont("verdana", 50);
-  textFont(font);
-  textAlign(CENTER, CENTER);
-  fill(128, 0, 0);
-  text("Game Over", width/2, height/2);
->>>>>>> master
-  popStyle();
-  didDrawGameOver = true;
 }
 
 /*
@@ -1474,8 +1364,6 @@ public class ZShape extends Shape{
     }
   }
 }
-<<<<<<< HEAD
-=======
 /*
  * 
  */
@@ -1552,7 +1440,6 @@ function SoundManager(){
 
 
 /*
->>>>>>> master
 function Minim(){
   this.loadFile = function(str){
     return new AudioPlayer(str);
@@ -1566,8 +1453,4 @@ function AudioPlayer(){
   this.rewind = function(){
   };
 }
-<<<<<<< HEAD
-
-=======
 */
->>>>>>> master

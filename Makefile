@@ -17,7 +17,7 @@ minify:
 # 
 publish:
 	git checkout gh-pages
-	merge master
+	git merge master
 	minify
 	git add Tetrissing-min.js
 	git push

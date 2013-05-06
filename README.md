@@ -9,9 +9,12 @@ Keys:
  - P for pause
  - Space to immediately drop piece
 
-To Build:
+To Build:  
+
  $ make  
+
  $ python -m SimpleHTTPServer  
+
 Then go to http://localhost:8080 
 
 Known Issues:

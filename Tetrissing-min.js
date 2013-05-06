@@ -1,3 +1,8 @@
+import ddf.minim.*;
+
+
+
+SoundManager soundManager;
 final boolean DEBUG = false;
 
 final int T_SHAPE = 0;
@@ -18,13 +23,22 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
+
+final int NUM_PIECES = 7;
+
+Ticker clearLineTicker;
+
+boolean clearingLines = false;
+
+int START_ROW = 24;
+
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
 Shape currentShape;
 int currShapeCol;
 int currShapeRow;
 
-//Queue nextPieceQueue
+Queue nextPieceQueue = new Queue();
 
 PImage backgroundImg;
 boolean upKeyState = false;
@@ -33,8 +47,9 @@ boolean upKeyState = false;
 int ghostShapeCol;
 int ghostShapeRow;
 
-boolean playerLost = false;
 boolean hasLostGame = false;
+boolean didDrawGameOver = false;
+
 
 final float TAP_LEN_IN_SEC = 0.1f;
 boolean holdingDownLeft = false;
@@ -45,18 +60,21 @@ float rightBuffer = 0f;
 
 float blocksPerSecond = 10.0f;
 
+
 // Number of lines cleared and number
 // Number of times user cleared 4 lines in one shot
 int numLines;
 int numTetrises;
+int score;
 
-int NUM_ROWS = 22 + 1;
+// Add 2 for left and right borders and 1 for floor
 int NUM_COLS = 10 + 2;
+int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
 
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4); // 30
+final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4);
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -72,12 +90,11 @@ Ticker rightMoveTicker;
 // --- FEATURES ---
 // InfiniteRotation - Allows player to keep rotating piece even if it fell
 // kickback - If true, players can rotate pieces even if flush against wall.
-
 boolean allowInfiniteRotation = false;
 boolean allowKickBack= true;
 boolean allowChainReactions = false;
-boolean allowDrawingGhost = true;
-boolean allowFadeEffect = true;
+boolean allowDrawingGhost = false;
+boolean allowFadeEffect = false;
 
 
 /*
@@ -108,24 +125,38 @@ public Shape getRandomShape(){
   if(randInt == O_SHAPE) return new OShape();
   if(randInt == J_SHAPE) return new JShape();
   if(randInt == I_SHAPE) return new IShape();
-  else             return new SShape();
+  else                   return new SShape();
 }
 
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
+  soundManager = new SoundManager(this);
+  soundManager.init();
   
   backgroundImg = loadImage("images/background.jpg");
   
+  clearLineTicker = new Ticker();
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
   
+  //
+  for(int i = 0; i < 3; i++){
+    nextPieceQueue.pushBack(getRandomShape());
+  }
+
+
   // P = pause
   // G = ghost
   // F = fade
   // K = kickback
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K});
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K, KEY_M});
+  
+  // Assume the user wants kickback
+  Keyboard.setKeyDown(KEY_K, true);
+  
+  //Keyboard.setKeyDown(KEY_M, true);
   
   numLines = 0;
    
@@ -141,9 +172,16 @@ public void setup(){
 }
 
 public void createPiece(){
-  currentShape = getRandomShape();
-  currShapeRow = -currentShape.getSize();
-  currShapeCol = 4;
+  currentShape = (Shape)nextPieceQueue.popFront(); 
+  
+  // How many rows do we have?
+  int y = NUM_ROWS - START_ROW;
+  
+  currShapeRow =y;
+  //y;//- currentShape.getSize()/2;
+  currShapeCol = NUM_COLS/2;
+  
+  nextPieceQueue.pushBack(getRandomShape());
 }
 
 public void createBorders(){
@@ -164,27 +202,23 @@ public void createBorders(){
  * keep going down until we find a collision.
  */
 public void findGhostPiecePosition(){
-  if(allowDrawingGhost == false){
-    return;
-  }
+  //if(allowDrawingGhost == false){return;}
   
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;
   
-  while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow) == 0){
+  // If we move the shape down one row and it will not result in a collision, 
+  // we can safely move the ghost piece row.
+  while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow + 1) == false){
     ghostShapeRow++;
   }
-  
-  // After we find a collision, we need to go up one row
-  // because that's where the piece would fall.
-  ghostShapeRow--;
 }
 
 /*
  * 0 - no collision
  * 1 - collision
  */
-public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
+public boolean checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   
@@ -212,29 +246,22 @@ public int checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
    
       // Transposed here!
       if(grid[shapeCol + c][shapeRow + r] != EMPTY && arr[r][c] != EMPTY){
-        return 1;
+        return true;
       }
     }
   }
   
-  return 0;
+  return false;
 }
+
 
 /**
 */
-public void moveShapeLeft(){
-  currShapeCol--;
+public void moveSideways(int amt){
+  currShapeCol += amt;
   
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-    currShapeCol++;
-  }
-}
-
-void moveShapeRight(){
-  currShapeCol++;
-  
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-    currShapeCol--;
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
+    currShapeCol -= amt;
   }
 }
     
@@ -253,15 +280,13 @@ public void update(){
     dropTicker.reset();
     
     if(currentShape != null){
-      currShapeRow++;
       
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
-        currShapeRow--;
-        addShapeToGrid(currentShape);
-      }else{
-        if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) == 1 && currShapeRow < 0){
-          exit();
-        }
+      // If moving the current piece down one row results in a collision, we can add it to the board
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow + 1)){
+        addPieceToBoard(currentShape);
+      }
+      else{
+        currShapeRow++;
       }
     }
   }
@@ -269,12 +294,12 @@ public void update(){
   allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
   
   if(Keyboard.isKeyDown(KEY_LEFT) && Keyboard.isKeyDown(KEY_RIGHT)){
-    return;
+    
   }
   
   // If we just let got of the left key, but we were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
-  if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true){
+  else if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true){
     holdingDownLeft = false;
     leftMoveTicker.reset();
     moveBuffer = 0f;
@@ -283,7 +308,7 @@ public void update(){
   else if(Keyboard.isKeyDown(KEY_LEFT) == false && moveBuffer > 0f){
     leftMoveTicker.reset();
     moveBuffer = 0;
-    moveShapeLeft();
+    moveSideways(-1);
   }
   // If the user is holding down the left key
   else if( Keyboard.isKeyDown(KEY_LEFT) ){
@@ -299,8 +324,7 @@ public void update(){
       // back if a collision occurred.
       if(moveBuffer > 1.0f){
         moveBuffer -= 1.0f;
-        
-        moveShapeLeft();
+        moveSideways(-1);
       }
     }
   }
@@ -308,7 +332,7 @@ public void update(){
     
   // If we just let got of the left key, but we were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
-  if( Keyboard.isKeyDown(KEY_RIGHT) == false && holdingDownRight == true){
+  else if( Keyboard.isKeyDown(KEY_RIGHT) == false && holdingDownRight == true){
     holdingDownRight = false;
     rightMoveTicker.reset();
     rightBuffer = 0f;
@@ -317,7 +341,7 @@ public void update(){
   else if(Keyboard.isKeyDown(KEY_RIGHT) == false && rightBuffer > 0f){
     rightMoveTicker.reset();
     rightBuffer = 0;
-    moveShapeRight();
+    moveSideways(1);
   }
   // If the user is holding down the left key
   else if( Keyboard.isKeyDown(KEY_RIGHT) ){
@@ -332,26 +356,31 @@ public void update(){
       // back if a collision occurred.
       if(rightBuffer > 1.0f){
         rightBuffer -= 1.0f;
-        moveShapeRight();
+        moveSideways(1);
       }
     }
   }
   
   findGhostPiecePosition();
   
-  debug.addString("FPS:" + (int)frameRate);
-  debug.addString("Lines:" + numLines);
+  //debug.addString("FPS:" + (int)frameRate);
+  debug.addString("Score: " + score);
   debug.addString("----------------");
-  debug.addString("F - toggle Fade effect");
-  debug.addString("G - toggle Ghost piece");
-  debug.addString("K - toggle Kick back");
-  debug.addString("P - pause game");
+  debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
+  debug.addString("G - Toggle Ghost piece ");
+  debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
+  debug.addString("M - Mute " + getOnStr(Keyboard.isKeyDown(KEY_M)));
+  debug.addString("P - Pause game");
+}
+
+public String getOnStr(boolean b){
+  return b ? "(on)" : "(off)";
 }
 
 /*
 * 
 */
-public void addShapeToGrid(Shape shape){
+public void addPieceToBoard(Shape shape){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
   int col = shape.getColor();
@@ -361,7 +390,6 @@ public void addShapeToGrid(Shape shape){
     return;
   }
   
-    
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -372,10 +400,45 @@ public void addShapeToGrid(Shape shape){
     }
   }
   
+  int numLinesToClear = getNumLinesToClear();
+  
+  switch(numLinesToClear){
+    case 0: soundManager.playDropPieceSound(); break;
+    case 1: score += 100;break;
+    case 2: score += 250;break;
+    case 3: score += 450;break;
+    case 4: soundManager.playClearLinesSound();score += 800;break;
+    default: break;
+  }
+  
   removeFilledLines();
   
   createPiece();
 }
+
+/**
+ */
+public int getNumLinesToClear(){
+  int numLinesToClear = 0;
+  
+  // Don't include the floor
+  for(int row = NUM_ROWS - 2; row > 0; row--){
+    
+    boolean lineFull = true;
+    for(int col = 1; col < NUM_COLS - 1; col++){
+      if(grid[col][row] == EMPTY){
+        lineFull = false;
+      }
+    }
+    
+    if(lineFull){
+      numLinesToClear++;
+    }
+  }
+  
+  return numLinesToClear;
+}
+
 
 /* Start from the bottom row. If we found a full line,
  * copy everythng from the row above that line to
@@ -384,16 +447,16 @@ public void addShapeToGrid(Shape shape){
 public void removeFilledLines(){
   for(int row = NUM_ROWS - 2; row > 0; row--){
     
-    boolean isFull = true;
+    boolean isLineFull = true;
     for(int col = 1; col < NUM_COLS - 1; col++){
       if(grid[col][row] == EMPTY){
-        isFull = false;
+        isLineFull = false;
       }
     }
     
-    if(isFull){
-      numLines++;
+    if(isLineFull){
       moveAllRowsDown(row);
+      clearingLines = true;
       
       // Start from the bottom again
       row = NUM_ROWS - 1;
@@ -412,14 +475,16 @@ public void moveAllRowsDown(int row){
   }
 }
 
-public void dropShape(){
+/** Immediately place the piece into the board.
+ */
+public void dropPiece(){
   boolean foundCollision = false;
   
   while(foundCollision == false){ 
     currShapeRow++;
-    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+    if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
       currShapeRow -= 1;
-      addShapeToGrid(currentShape);
+      addPieceToBoard(currentShape);
       foundCollision = true;
     }
   }
@@ -429,60 +494,102 @@ public int getRandomInt(int minVal, int maxVal) {
   return (int)random(minVal, maxVal + 1);
 }
 
+/**
+ */
 public void draw(){
-  
+    
+  if(didDrawGameOver){
+    return;
+  }
+
   if(hasLostGame){
-    exit();
+    showGameOver();
+    return;
   }
   
-  else{
-    if(Keyboard.isKeyDown(KEY_P) ){
+  if(Keyboard.isKeyDown(KEY_P) ){
+    showGamePaused();
+    return;
+  }
+  
+  if(clearingLines){
+    clearLineTicker.tick();
+    if(clearLineTicker.getTotalTime() < 0.5f){
       return;
     }
-    
-    update();
-    
-    if(allowFadeEffect){
-      pushStyle();
-      fill(0, 32);
-      noStroke();
-      rect(0, 0, width, height);
-      popStyle();  
-    }
     else{
-      background(0);
+      clearLineTicker.reset();
+      clearingLines = false;
     }
-    
-    image(backgroundImg, 0, 0);
-    
-    translate(0, BOX_SIZE * 2);
-    //translate(0, -8);
-    drawBorders();
-    
-    translate(0, 14);
-    //drawBackground();
-    
-    
-    drawGrid();
-    
-    findGhostPiecePosition();
-    drawGhostPiece();
-  
-    drawCurrShape();
-   
-    pushMatrix();
-    translate(200, 40);
-    pushStyle();
-    stroke(255);
-    debug.draw();
-    popStyle();
-    popMatrix();
-    
-    postRender();
   }
+    
+  update();
+  
+  if(allowFadeEffect){
+    pushStyle();
+    fill(0, 32);
+    noStroke();
+    rect(0, 0, width, height);
+    popStyle();  
+  }
+  else{
+    background(0);
+  }
+   
+  //translate(0, -BOX_SIZE * 4);
+  translate(0, BOX_SIZE * 4);
+  
+  
+  pushMatrix();
+  translate(0, BOX_SIZE * 3);
+  pushStyle();
+  fill(45, 128);
+  rect(0, 0, BOX_SIZE* 300, BOX_SIZE);
+  popStyle();
+  popMatrix();
+  
+  
+  drawBoard();
+  
+  findGhostPiecePosition();
+  drawGhostPiece();
+
+  drawCurrShape();  
+
+  
+  drawBorders();
+  
+  pushMatrix();
+  translate(-100, 200);
+  drawNextShape();
+  popMatrix();
+    
+  // Draw debugging stuff on top of everything else
+  pushMatrix();
+  translate(200, 40);
+  pushStyle();
+  stroke(255);
+  debug.draw();
+  popStyle();
+  popMatrix();
+  
+  debug.clear();
 }
 
-/* For cheaters
+/**
+ */
+public void drawNextShape(){
+  pushStyle();
+  Shape nextShape = (Shape)nextPieceQueue.peekFront();
+  fill(getColorFromID(nextShape.getColor()));
+  stroke(255);
+  strokeWeight(1);
+  drawShape(nextShape, 20, 0);
+  popStyle();
+}
+
+/* A ghost piece shows where the piece the user
+ * is currently holding will end up.
  */
 public void drawGhostPiece(){
   if(allowDrawingGhost == false){
@@ -509,7 +616,6 @@ public void drawCurrShape(){
   popStyle();
 }
 
-
 /*
  */
 public color getColorFromID(int col){
@@ -524,10 +630,12 @@ public color getColorFromID(int col){
 }
 
 /*
- *
+ * Rotating the shape may fail if rotating the shape results in
+ * a collision with another piece on the board.
  */
-public void rotateShape(){
-
+public void requestRotatePiece(){
+  
+  // We try to rotate the shape, if it fails, we undo the rotation.
   currentShape.rotate();
       
   //
@@ -544,11 +652,12 @@ public void rotateShape(){
   if(DEBUG){
     println("pos: " + pos);
     println("amountToShiftLeft: " + amountToShiftLeft);
-  
     println("amountToShiftRight: " + amountToShiftRight);
     println("emptyLeftSpaces: " + emptyLeftSpaces);
   }
   
+  // If we are allowing the user to rotate the piece, even
+  // if the piece is flush against the wall. 
   if(allowKickBack){
     // TODO: fix this hack
     // If one part of the piece is touching the right border
@@ -556,7 +665,7 @@ public void rotateShape(){
       currShapeCol += amountToShiftRight;
   
       // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
         currShapeCol -= amountToShiftLeft;
       }
     }
@@ -565,13 +674,13 @@ public void rotateShape(){
       currShapeCol -= amountToShiftLeft;
   
       // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
-      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+      if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
         currShapeCol += amountToShiftLeft;
       }
     }
   }
     
-  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow) != 0){
+  if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
     currentShape.unRotate();
   }
 }
@@ -580,36 +689,27 @@ public void rotateShape(){
  */
 public void keyPressed(){
   
-  if(keyCode == KEY_UP && upKeyState == false){
-    rotateShape();
-    upKeyState = true;
+  if(keyCode == KEY_UP){
+    requestRotatePiece();
   }
   
   Keyboard.setKeyDown(keyCode, true);
 }
 
 public void keyReleased(){
-  
-  if(keyCode == KEY_UP){
-    upKeyState = false;
-  }
-  
+ 
   if(keyCode == KEY_SPACE){
-    dropShape();
+    dropPiece();
   }
   
   Keyboard.setKeyDown(keyCode, false);
-}
-
-public void postRender(){
-  debug.clear();
 }
 
 /**
  * Iterate from 1 to NUM_COLS-1 because we don't want to draw the borders.
  * Same goes for not drawing the last row.
  */
-public void drawGrid(){
+public void drawBoard(){
   for(int cols = 1; cols < NUM_COLS-1; cols++){
     for(int rows = 0; rows < NUM_ROWS-1; rows++){
       drawBox(cols, rows, grid[cols][rows]);
@@ -617,14 +717,16 @@ public void drawGrid(){
   }
 }
 
+/* Draw the board borders
+ */
 public void drawBorders(){
   pushStyle();
   noStroke();
-  fill(0);
+  fill(256, 256, 256);
   
   // Floor
   for(int col = 0; col < NUM_COLS; col++){
-    //rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+    rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
   
   for(int row = 0; row < NUM_ROWS; row++){
@@ -646,19 +748,36 @@ public void drawBox(int col, int row, int _color){
   }
 }
 
-public void drawBackground(){
+
+public void showGamePaused(){
   pushStyle();
-  noFill();
-  strokeWeight(1);
-  stroke(255, 32);
-  
-  // Draw a translucent grid
-  for(int cols = 0; cols < NUM_COLS; cols++){
-    for(int rows = 0; rows < NUM_ROWS; rows++){
-      rect(cols * BOX_SIZE, rows * BOX_SIZE, BOX_SIZE, BOX_SIZE);
-    }
-  }
+  fill(128, 0, 0, 1);
+  noStroke();
+  rect(0, BOX_SIZE * 3, width - 200, height);
+  PFont font = createFont("verdana", 50);
+  textFont(font);
+  textAlign(CENTER, CENTER);
+  fill(0, 0, 128);
+  text("Game Paused", width/2, height/2);
   popStyle();
+}
+
+/*
+ * Overlay a semi-transparent layer on top of the board to hint
+ * the game is no longer playable.
+ */
+public void showGameOver(){
+  pushStyle();
+  fill(128, 128);
+  noStroke();
+  rect(0, 0, width, height);
+  PFont font = createFont("verdana", 50);
+  textFont(font);
+  textAlign(CENTER, CENTER);
+  fill(128, 0, 0);
+  text("Game Over", width/2, height/2);
+  popStyle();
+  didDrawGameOver = true;
 }
 /*
  * Prints text on top of everything for real-time object tracking.
@@ -709,65 +828,17 @@ class Debugger{
   }
 }
 
-public class JShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnLeft;
-  int spacesOnRight;
-  
+public class JShape extends Shape{
+    
   JShape(){
-    shape = new int[3][3];
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = ORANGE;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 3 ){
-      state = 0;
-    }
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return ORANGE;
   }
   
   public void changeShape(){
-    if(state == 1){
-      spacesOnLeft = 0;
-      spacesOnRight = 1;
-      shape = new int[][] { {0, 1, 0},
-                            {0, 1, 0},
-                            {1, 1, 0}
-                          };
-    }
-    else if(state == 0){
+    if(state == 0){
       spacesOnLeft = 0;
       spacesOnRight = 0;
       shape = new int[][] { {0, 0, 0},
@@ -775,12 +846,12 @@ public class JShape implements Shape{
                             {0, 0, 1}
                           };
     }
-    else if(state == 3){
-      spacesOnLeft = 1;
-      spacesOnRight = 0;
-      shape = new int[][] { {0, 1, 1},
+    else if(state == 1){
+      spacesOnLeft = 0;
+      spacesOnRight = 1;
+      shape = new int[][] { {0, 1, 0},
                             {0, 1, 0},
-                            {0, 1, 0}
+                            {1, 1, 0}
                           };
     }
     else if(state == 2){
@@ -791,73 +862,32 @@ public class JShape implements Shape{
                             {0, 0, 0}
                           };
     }
+    else if(state == 3){
+      spacesOnLeft = 1;
+      spacesOnRight = 0;
+      shape = new int[][] { {0, 1, 1},
+                            {0, 1, 0},
+                            {0, 1, 0}
+                          };
+    }
   }
 }
-public class LShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class LShape extends Shape{
   
   LShape(){
-    shape = new int[3][3];
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = MAGENTA;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 3 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return MAGENTA;
   }
   
   public void changeShape(){
-    if(state == 3){
-      spacesOnRight = 0;
-      spacesOnLeft = 1;
-      shape = new int[][] { {0, 1, 0},
-                            {0, 1, 0},
-                            {0, 1, 1}
-                          };
-    }
-    else if(state == 2){
-      spacesOnRight = 0;
+    if(state == 0){
       spacesOnLeft = 0;
-      shape = new int[][] { {0, 0, 1},
+      spacesOnRight = 0;
+      shape = new int[][] { {0, 0, 0},
                             {1, 1, 1},
-                            {0, 0, 0}
+                            {1, 0, 0}
                           };
     }
     else if(state == 1){
@@ -868,29 +898,111 @@ public class LShape implements Shape{
                             {0, 1, 0}
                           };
     }
-    else if(state == 0){
-      spacesOnLeft = 0;
+    else if(state == 2){
       spacesOnRight = 0;
-      shape = new int[][] { {0, 0, 0},
+      spacesOnLeft = 0;
+      shape = new int[][] { {0, 0, 1},
                             {1, 1, 1},
-                            {1, 0, 0}
+                            {0, 0, 0}
+                          };
+    }
+    else if(state == 3){
+      spacesOnRight = 0;
+      spacesOnLeft = 1;
+      shape = new int[][] { {0, 1, 0},
+                            {0, 1, 0},
+                            {0, 1, 1}
                           };
     }
   }
 }
+/*
+ A Queue for the next few pieces.
+*/
+public class Queue<T>{
+  private ArrayList<T> items;
+  
+  public Queue(){
+    items = new ArrayList<T>();
+  }
+
+  public void pushBack(T i){
+    items.add(i);
+  }
+ 
+  public T popFront(){
+    T item = items.get(0);
+    items.remove(0);
+    return item;
+  }
+  
+  public boolean isEmpty(){
+    return items.isEmpty();
+  }
+  
+  public int size(){
+    return items.size();
+  }
+  
+  public T peekFront(){
+    return items.get(0);
+  }
+}
 /**
 */
-public interface Shape{
-  public int[][] getArr();
+public class Shape{
   
-  public void rotate();
-  public void unRotate();
+  int[][] shape;
+  int spacesOnRight;
+  int spacesOnLeft;
+  int state;
+  int size;
+  int numStates;
+  int _color;
   
-  public int getColor();
-  public int getSize();
+  public Shape(){
+    state = 0;
+  }
+
+  public int[][] getArr(){
+    return shape;
+  }
+  public void changeShape(){
+  }
   
-  public int getEmptySpacesOnRight();
-  public int getEmptySpacesOnLeft();
+  public void rotate(){
+    state++;
+    if(state >= numStates){
+      state = 0;
+    }
+    changeShape();
+  }
+  
+
+  
+  public void unRotate(){
+    state--;
+    if(state < 0){
+      state = numStates - 1;
+    }
+    changeShape();
+  }
+  
+  public int getSize(){
+    return size;
+  }
+  
+  public int getColor(){
+    return _color;
+  }
+  
+  public int getEmptySpacesOnRight(){
+    return spacesOnRight;
+  }
+  
+  public int getEmptySpacesOnLeft(){
+    return spacesOnLeft;
+  }
 }
 /**
  * A ticker class to manage animation timing.
@@ -952,54 +1064,13 @@ public class Ticker{
     totalTime += deltaTime;
   }
 }
-public class IShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class IShape extends Shape{
   
   IShape(){
-    shape = null;
-    state = 0;
+    size = 4;
+    numStates = 2;
+    _color = RED;
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1 ){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 4;
-  }
-  
-  public int getColor(){
-    return RED;
   }
   
   public void changeShape(){
@@ -1028,14 +1099,19 @@ public class IShape implements Shape{
  */
 public static class Keyboard{
   
-  // All they keys that are currently locked.
-  private static boolean[] lockedKeys = new boolean[128];
+  private static final int NUM_KEYS = 128;
+  
+  // Locking keys are good for toggling things.
+  // After locking a key, when a user presses and releases a key, it will register and
+  // being 'down' (even though it has been released). Once the user presses it again,
+  // it will register as 'up'.
+  private static boolean[] lockableKeys = new boolean[NUM_KEYS];
   
   // Use char since we only need to store 2 states (0, 1)
-  private static char[] lockedKeyPresses = new char[128];
+  private static char[] lockedKeyPresses = new char[NUM_KEYS];
   
   // The key states, true if key is down, false if key is up.
-  private static boolean[] keys = new boolean[128];
+  private static boolean[] keys = new boolean[NUM_KEYS];
   
   /*
    * The specified keys will stay down even after user releases the key.
@@ -1043,16 +1119,20 @@ public static class Keyboard{
    */
   public static  void lockKeys(int[] keys){
     for(int k : keys){
-      lockedKeys[k] = true;
+      if( k > -1 && k < NUM_KEYS){
+        lockableKeys[k] = true;
+      }
     }
   }
   
   /*
-   *
+   * TODO: if the key was locked and is down, then we unlock it, it needs to 'pop' back up.
    */
   public static void unlockKeys(int[] keys){
     for(int k : keys){
-      lockedKeys[k] = false;
+      if(k > -1 && k < NUM_KEYS){
+        lockableKeys[k] = false;
+      }
     }
   }
   
@@ -1061,17 +1141,31 @@ public static class Keyboard{
    */
   public static void setKeyDown(int key, boolean state){
     
-    if(key > 127){
+    if(key <= -1 || key >= NUM_KEYS){
       return;
     }
     
-    // If the key is locked, and the user just released the key, add to our internal count
-    if(lockedKeys[key] && state == false){
-      lockedKeyPresses[key]++;
-      if(lockedKeyPresses[key] == 2){
-          keys[key] = false;
-          lockedKeyPresses[key] = 0;
-      }
+    // If the key is lockable, as soon as we tell the class the key is down, we lock it.
+    if( lockableKeys[key] ){
+    
+        // 0 - key is up.
+        // 1 - key is down
+        if( state == true ){
+          lockedKeyPresses[key]++; // 1, 
+          keys[key] = true;
+        }
+        // We tell the key that we released
+        else{
+          // But is this the second release or the first?
+          if(lockedKeyPresses[key] == 1){
+            // first release, do nothing
+          }
+          // On the second release, let go of the key.
+          else if(lockedKeyPresses[key] == 2){
+            lockedKeyPresses[key] = 0;
+            keys[key] = false;
+          }
+        }
     }
     else{
       keys[key] = state;
@@ -1159,90 +1253,27 @@ final int KEY_w = 119;
 final int KEY_x = 120;
 final int KEY_y = 121;
 final int KEY_z = 122;
-public class OShape implements Shape{
-  int[][] shape;
-  
+public class OShape extends Shape{
+ 
   OShape(){
+    size = 2;
+    numStates = 1;
+    _color = BLUE;
     shape = new int[][]{{1, 1},
                         {1, 1}};
   }
-  
-  // This shape is perfectly packed tight, there is no empty space
-  public int getEmptySpacesOnRight(){
-    return 0;
-  }
-
-  public int getEmptySpacesOnLeft(){
-    return 0;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){}
-  public void unRotate(){}
-  
-  public int getSize(){
-    return 2;
-  }
-  
-  public int getColor(){
-    return BLUE;
-  }
 }
-public class SShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class SShape extends Shape{
   
   SShape(){
-    shape = new int[3][3];
-    state = 0;
+    size = 3;
+    numStates = 2;
+    _color = GREEN; 
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return GREEN;
   }
   
   public void changeShape(){
+
     if(state == 0){
       spacesOnRight = 0;
       spacesOnLeft = 0;
@@ -1261,55 +1292,13 @@ public class SShape implements Shape{
     }
   }
 }
-public class TShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class TShape extends Shape{
   
   TShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 4;
+    _color = OLIVE;  
     changeShape();
-  }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnRight;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    
-    if(state > 3){
-      state = 0;
-    }
-    
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 3;
-    }
-    changeShape();
-  }
-
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return OLIVE;
   }
   
   public void changeShape(){
@@ -1347,57 +1336,15 @@ public class TShape implements Shape{
     }
   }
 }
-public class ZShape implements Shape{
-  
-  int[][] shape;
-  int state;
-  int spacesOnRight;
-  int spacesOnLeft;
+public class ZShape extends Shape{
   
   ZShape(){
-    shape = null;
-    state = 0;
+    size = 3;
+    numStates = 2;
+    _color = CYAN;
     changeShape();
   }
-  
-  public int getEmptySpacesOnRight(){
-    return spacesOnRight;
-  }
-  
-  public int getEmptySpacesOnLeft(){
-    return spacesOnLeft;
-  }
-  
-  public int[][] getArr(){
-    return shape;
-  }
-  
-  public void rotate(){
-    state++;
-    if(state > 1){
-      state = 0;
-    }
     
-    changeShape();
-  }
-  
-  public void unRotate(){
-    state--;
-    if(state < 0){
-      state = 1;
-    }
-    
-    changeShape();
-  }
-  
-  public int getSize(){
-    return 3;
-  }
-  
-  public int getColor(){
-    return CYAN;
-  }
-  
   public void changeShape(){
     if(state == 0){
       spacesOnRight = 0;
@@ -1417,3 +1364,93 @@ public class ZShape implements Shape{
     }
   }
 }
+/*
+ * 
+ */
+function SoundManager(){
+  var that = this;
+
+  var muted;  
+  var hasWebAudio;
+
+  var basePath = "data/audio/";
+
+  var sources = [];
+  var paths = [basePath + "dropPiece.ogg", basePath + "clearLine.ogg"];
+  var contexts = [];
+
+  var TETRIS = 2;
+  var DROP = 0;
+  var LINES = 1;
+
+  this.init = function(){
+    var that = this;
+    
+    hasWebAudio = typeof webkitAudioContext != 'undefined' ? true : false;
+
+    if(hasWebAudio){
+      for(var i = 0; i < paths.length; i++){
+     
+        contexts[i] = new webkitAudioContext();
+        var getSound = new XMLHttpRequest();
+        getSound.open("GET", paths[i], true);
+        getSound.responseType = "arraybuffer";
+        
+	getSound.onload = (function(i, s){
+	  return function(){
+	    contexts[i].decodeAudioData(s.response, function(buff){sources[i] = buff});
+	  };
+	})(i, getSound);
+
+	getSound.send();      
+      } 
+    }
+  };
+
+  this.setMute = function(mute){
+    muted = mute;
+  };
+
+  this.playSound = function(soundID){
+    if(muted){
+      return;
+    }
+
+    if(contexts[soundID]){
+      var playSound = contexts[soundID].createBufferSource();
+      playSound.buffer = sources[soundID];
+      playSound.connect(contexts[soundID].destination);
+      playSound.noteOn(0);
+    }
+  };
+
+  this.playDropPieceSound = function(){
+    this.playSound(DROP);
+  };
+
+  this.playClearLinesSound = function(){
+    this.playSound(LINES);
+  };
+
+  this.playClearTetrisSound = function(){
+  };
+}
+
+
+
+
+/*
+function Minim(){
+  this.loadFile = function(str){
+    return new AudioPlayer(str);
+  }
+}
+
+function AudioPlayer(){
+  this.play = function(){
+  };
+
+  this.rewind = function(){
+  };
+}
+*/

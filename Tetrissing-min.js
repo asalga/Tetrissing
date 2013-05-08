@@ -68,8 +68,9 @@ int numTetrises;
 int score;
 
 // Add 2 for left and right borders and 1 for floor
-int NUM_COLS = 10 + 2;
-int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
+final int NUM_COLS = 10 + 2;
+final int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
+final int CUT_OFF_INDEX = 3;
 
 int BOX_SIZE = 16;
 
@@ -114,6 +115,8 @@ public void drawShape(Shape shape, int colPos, int rowPos){
   }
 }
 
+/*
+ */
 public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
   
@@ -156,6 +159,7 @@ public void setup(){
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
   
+  // assume muted?
   //Keyboard.setKeyDown(KEY_M, true);
   
   numLines = 0;
@@ -174,16 +178,14 @@ public void setup(){
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
   
-  // How many rows do we have?
-  int y = NUM_ROWS - START_ROW;
-  
-  currShapeRow =y;
-  //y;//- currentShape.getSize()/2;
+  currShapeRow = 0;
   currShapeCol = NUM_COLS/2;
   
   nextPieceQueue.pushBack(getRandomShape());
 }
 
+/*
+ */
 public void createBorders(){
   for(int col = 0; col < NUM_COLS; col++){
     grid[col][NUM_ROWS - 1] = WHITE;
@@ -202,7 +204,10 @@ public void createBorders(){
  * keep going down until we find a collision.
  */
 public void findGhostPiecePosition(){
-  //if(allowDrawingGhost == false){return;}
+  //
+  //if(allowDrawingGhost == false){
+  //  return;
+  //}
   
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;
@@ -215,8 +220,6 @@ public void findGhostPiecePosition(){
 }
 
 /*
- * 0 - no collision
- * 1 - collision
  */
 public boolean checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
   int[][] arr = shape.getArr();
@@ -271,9 +274,12 @@ public void update(){
   
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
-  allowFadeEffect = Keyboard.isKeyDown(KEY_F);
-  allowKickBack = Keyboard.isKeyDown(KEY_K);
   
+  // Features
+  allowFadeEffect   = Keyboard.isKeyDown(KEY_F);
+  allowKickBack     = Keyboard.isKeyDown(KEY_K);
+  allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
+    
   dropTicker.tick();
   
   if(dropTicker.getTotalTime() >= dropSpeed){
@@ -291,13 +297,13 @@ public void update(){
     }
   }
   
-  allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
+
   
   if(Keyboard.isKeyDown(KEY_LEFT) && Keyboard.isKeyDown(KEY_RIGHT)){
-    
+    rightMoveTicker.reset();
   }
   
-  // If we just let got of the left key, but we were holding it down, make sure not
+  // If the player just let go of the left key, but they were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
   else if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true){
     holdingDownLeft = false;
@@ -330,7 +336,7 @@ public void update(){
   }
   
     
-  // If we just let got of the left key, but we were holding it down, make sure not
+  // If the player just let go of the right key, but they were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
   else if( Keyboard.isKeyDown(KEY_RIGHT) == false && holdingDownRight == true){
     holdingDownRight = false;
@@ -343,11 +349,13 @@ public void update(){
     rightBuffer = 0;
     moveSideways(1);
   }
-  // If the user is holding down the left key
+  
+  // If the user is holding down the right key
   else if( Keyboard.isKeyDown(KEY_RIGHT) ){
     rightMoveTicker.tick();
     rightBuffer += rightMoveTicker.getDeltaSec() * blocksPerSecond;
      
+    
     // If we passed the tap threshold
     if(rightMoveTicker.getTotalTime() >= 0.12f){
       holdingDownRight = true;
@@ -385,11 +393,6 @@ public void addPieceToBoard(Shape shape){
   int shapeSize = shape.getSize();
   int col = shape.getColor();
   
-  if(currShapeRow < 0){
-    hasLostGame = true;
-    return;
-  }
-  
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -398,6 +401,11 @@ public void addPieceToBoard(Shape shape){
         grid[currShapeCol + c][currShapeRow + r] = col;
       }
     }
+  }
+  
+  if(addedBoxInCutoff()){
+    hasLostGame = true;
+    return;
   }
   
   int numLinesToClear = getNumLinesToClear();
@@ -417,6 +425,7 @@ public void addPieceToBoard(Shape shape){
 }
 
 /**
+ * returns a value from 0 - 4
  */
 public int getNumLinesToClear(){
   int numLinesToClear = 0;
@@ -438,7 +447,6 @@ public int getNumLinesToClear(){
   
   return numLinesToClear;
 }
-
 
 /* Start from the bottom row. If we found a full line,
  * copy everythng from the row above that line to
@@ -490,6 +498,18 @@ public void dropPiece(){
   }
 }
 
+/* Inspects the board and checks if the player tried
+ * to add a part of a piece in the cutoff row, they lose.
+ */
+public boolean addedBoxInCutoff(){
+  for(int c = 1; c < NUM_COLS - 1; c++){
+    if(grid[c][CUT_OFF_INDEX] != EMPTY){
+      return true;
+    }
+  }
+  return false;
+}
+
 public int getRandomInt(int minVal, int maxVal) {
   return (int)random(minVal, maxVal + 1);
 }
@@ -535,27 +555,24 @@ public void draw(){
   else{
     background(0);
   }
-   
-  //translate(0, -BOX_SIZE * 4);
+  
   translate(0, BOX_SIZE * 4);
   
-  
+  // Draw cutoff
   pushMatrix();
   translate(0, BOX_SIZE * 3);
   pushStyle();
-  fill(45, 128);
-  rect(0, 0, BOX_SIZE* 300, BOX_SIZE);
+  fill(45, 0, 0, 200);
+  rect(0, 0, BOX_SIZE* NUM_COLS, BOX_SIZE);
   popStyle();
   popMatrix();
-  
   
   drawBoard();
   
   findGhostPiecePosition();
   drawGhostPiece();
 
-  drawCurrShape();  
-
+  drawCurrShape();
   
   drawBorders();
   
@@ -729,11 +746,11 @@ public void drawBorders(){
     rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
   
-  for(int row = 0; row < NUM_ROWS; row++){
+  for(int row = 2; row < NUM_ROWS; row++){
     rect(0, row * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
 
-  for(int row = 0; row < NUM_ROWS; row++){
+  for(int row = 2; row < NUM_ROWS; row++){
     rect((NUM_COLS-1) * BOX_SIZE, row * BOX_SIZE, BOX_SIZE, BOX_SIZE);
   }
   popStyle();
@@ -748,7 +765,8 @@ public void drawBox(int col, int row, int _color){
   }
 }
 
-
+/*
+ */
 public void showGamePaused(){
   pushStyle();
   fill(128, 0, 0, 1);

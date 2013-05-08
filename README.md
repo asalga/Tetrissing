@@ -10,11 +10,8 @@ Keys:
  - Space to immediately drop piece
 
 To Build:  
-
  $ make  
-
  $ python -m SimpleHTTPServer  
-
 Then go to http://localhost:8080 
 
 Known Issues:
@@ -24,8 +21,6 @@ Known Issues:
  - Add animation on line clear
  - Fix dropping piece while pause
  - Allow infinite rotate option
- - Fix moving piece faster by holding down both left and right and
-   releasing one key
  - Add chain reaction feature
  - Fix drawing drop streak
  - Fix audio for Firefox

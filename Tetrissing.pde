@@ -115,6 +115,8 @@ public void drawShape(Shape shape, int colPos, int rowPos){
   }
 }
 
+/*
+ */
 public Shape getRandomShape(){
   int randInt = getRandomInt(0, 6);
   
@@ -157,6 +159,7 @@ public void setup(){
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
   
+  // assume muted?
   //Keyboard.setKeyDown(KEY_M, true);
   
   numLines = 0;
@@ -271,9 +274,12 @@ public void update(){
   
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
-  allowFadeEffect = Keyboard.isKeyDown(KEY_F);
-  allowKickBack = Keyboard.isKeyDown(KEY_K);
   
+  // Features
+  allowFadeEffect   = Keyboard.isKeyDown(KEY_F);
+  allowKickBack     = Keyboard.isKeyDown(KEY_K);
+  allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
+    
   dropTicker.tick();
   
   if(dropTicker.getTotalTime() >= dropSpeed){
@@ -291,13 +297,13 @@ public void update(){
     }
   }
   
-  allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
+
   
   if(Keyboard.isKeyDown(KEY_LEFT) && Keyboard.isKeyDown(KEY_RIGHT)){
-    
+    rightMoveTicker.reset();
   }
   
-  // If we just let got of the left key, but we were holding it down, make sure not
+  // If the player just let go of the left key, but they were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
   else if(Keyboard.isKeyDown(KEY_LEFT) == false && holdingDownLeft == true){
     holdingDownLeft = false;
@@ -330,7 +336,7 @@ public void update(){
   }
   
     
-  // If we just let got of the left key, but we were holding it down, make sure not
+  // If the player just let go of the right key, but they were holding it down, make sure not
   // to move and extra bit that the tap key condition would hit.
   else if( Keyboard.isKeyDown(KEY_RIGHT) == false && holdingDownRight == true){
     holdingDownRight = false;
@@ -343,11 +349,13 @@ public void update(){
     rightBuffer = 0;
     moveSideways(1);
   }
-  // If the user is holding down the left key
+  
+  // If the user is holding down the right key
   else if( Keyboard.isKeyDown(KEY_RIGHT) ){
     rightMoveTicker.tick();
     rightBuffer += rightMoveTicker.getDeltaSec() * blocksPerSecond;
      
+    
     // If we passed the tap threshold
     if(rightMoveTicker.getTotalTime() >= 0.12f){
       holdingDownRight = true;

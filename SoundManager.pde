@@ -19,7 +19,6 @@ public class SoundManager{
   }
   
   public  void playDropPieceSound(){
-    println("play drop piece sound");
     if(muted){
       return;
     }
@@ -42,8 +41,8 @@ public class SoundManager{
   }
   
   public void stop(){
-  //dropPiece.close();
- // minim.stop();
-  //super.stop();
+    //dropPiece.close();
+    // minim.stop();
+    //super.stop();
   }
 }

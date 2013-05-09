@@ -21,8 +21,6 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
-final int NUM_PIECES = 7;
-
 // We 'add' 1 to this before we render
 int level = 0;
 int score = 0;
@@ -71,9 +69,6 @@ boolean holdingDownRight = false;
 float rightBuffer = 0f;
 
 float blocksPerSecond = 10.0f;
-
-
-
 
 // Add 2 for left and right borders and 1 for floor
 final int NUM_COLS = 10;  // 10 cols + 2 for border
@@ -229,6 +224,22 @@ public void findGhostPiecePosition(){
   while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow + 1) == false){
     ghostShapeRow++;
   }
+}
+
+
+public void drawBackground(){
+  pushStyle();
+  noFill();
+  strokeWeight(1);
+  stroke(255, 32);
+  
+  // Draw a translucent grid
+  for(int cols = 0; cols < NUM_COLS; cols++){
+    for(int rows = CUT_OFF_INDEX; rows < NUM_ROWS; rows++){
+      rect(cols * BOX_SIZE, rows * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+    }
+  }
+  popStyle();
 }
 
 /*
@@ -546,7 +557,9 @@ public int getRandomInt(int minVal, int maxVal) {
 /**
  */
 public void draw(){
-    
+  
+
+  
   if(didDrawGameOver){
     return;
   }
@@ -603,6 +616,8 @@ public void draw(){
 
   drawCurrShape();
   
+  drawBackground();
+    
   drawBorders();
   
   pushMatrix();
@@ -647,7 +662,7 @@ public void drawGhostPiece(){
   
   float opacity = (ghostShapeRow - currShapeRow) / (float)NUM_ROWS * 32;
   fill(col, opacity);
-  stroke(col, opacity * 4); 
+  stroke(col, opacity * 5); 
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
   popStyle();
 }

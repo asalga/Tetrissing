@@ -23,4 +23,5 @@ Known Issues:
  - Allow infinite rotate option
  - Add chain reaction feature
  - Fix drawing drop streak
+ - TSpin on far left moves piece to far right
  - Fix audio for Firefox

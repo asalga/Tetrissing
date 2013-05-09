@@ -1,7 +1,5 @@
 import ddf.minim.*;
 
-
-
 SoundManager soundManager;
 final boolean DEBUG = false;
 
@@ -23,14 +21,27 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
-
 final int NUM_PIECES = 7;
+
+// We 'add' 1 to this before we render
+int level = 0;
+
+int SCORE_1_LINE  = 100;
+int SCORE_2_LINES = 250;
+int SCORE_3_LINES = 500;
+int SCORE_4_LINES = 600;
+
+final int MAX_LEVELS = 5;
+int scoreForThisLevel = 0;
+int[] scoreReqForNextLevel = new int[]{  SCORE_4_LINES * 2,
+                                         SCORE_4_LINES * 4,
+                                         SCORE_4_LINES * 6,
+                                         SCORE_4_LINES * 8,
+                                         SCORE_4_LINES * 10};
 
 Ticker clearLineTicker;
 
 boolean clearingLines = false;
-
-int START_ROW = 24;
 
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
@@ -372,6 +383,7 @@ public void update(){
   findGhostPiecePosition();
   
   //debug.addString("FPS:" + (int)frameRate);
+  debug.addString("Level: " + level + 1);
   debug.addString("Score: " + score);
   debug.addString("----------------");
   debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
@@ -412,11 +424,17 @@ public void addPieceToBoard(Shape shape){
   
   switch(numLinesToClear){
     case 0: soundManager.playDropPieceSound(); break;
-    case 1: score += 100;break;
-    case 2: score += 250;break;
-    case 3: score += 450;break;
-    case 4: soundManager.playClearLinesSound();score += 800;break;
+    case 1: scoreForThisLevel += 100;score += 100;break;
+    case 2: scoreForThisLevel += 250;score += 250;break;
+    case 3: scoreForThisLevel += 450;score += 450;break;
+    case 4: soundManager.playClearLinesSound();scoreForThisLevel += 800;score += 800;break;
     default: break;
+  }
+  
+  //
+  if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
+    scoreForThisLevel = 0;
+    level++;
   }
   
   removeFilledLines();

@@ -1,7 +1,7 @@
 Tetrissing
 ==========
 
-Tetris in Processing
+Tetris clone in Processing
 
 Keys:
  - Arrow keys to transform piece
@@ -20,8 +20,10 @@ Known Issues:
  - User can slide piece along floor
  - Add animation on line clear
  - Fix dropping piece while pause
- - Allow infinite rotate option
- - Add chain reaction feature
  - Fix drawing drop streak
  - TSpin on far left moves piece to far right
  - Fix audio for Firefox
+
+Future stuff:
+ - Add chain reaction feature
+ - Add spin forever feature

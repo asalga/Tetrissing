@@ -6,7 +6,7 @@
 build: minify
 
 minify:
-	cat Tetrissing.pde Debugger.pde JShape.pde LShape.pde Queue.pde Shape.pde Ticker.pde IShape.pde Keyboard.pde OShape.pde SShape.pde TShape.pde ZShape.pde SoundManager.js > Tetrissing-min.js
+	cat Tetrissing.pde Debugger.pde JShape.pde LShape.pde Queue.pde Shape.pde Ticker.pde IShape.pde Keyboard.pde OShape.pde SShape.pde TShape.pde ZShape.pde SpriteFont.pde SoundManager.js > Tetrissing-min.js
 	rm -fr tools-bin
 	mkdir tools-bin/
 	cc -o tools-bin/minifier tools/jsmin.c

@@ -40,6 +40,8 @@ int[] scoreReqForNextLevel = new int[]{  SCORE_4_LINES * 2,
 
 Ticker clearLineTicker;
 
+
+
 boolean clearingLines = false;
 
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
@@ -76,7 +78,7 @@ final int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
 final int CUT_OFF_INDEX = 3;
 
 // Don't include the floor
-final int LAST_ROW_INDEX = 30 - 2;
+final int LAST_ROW_INDEX = NUM_ROWS - 2;
 
 int BOX_SIZE = 16;
 
@@ -95,23 +97,31 @@ Ticker rightMoveTicker;
 
 
 // --- FEATURES ---
-// InfiniteRotation - Allows player to keep rotating piece even if it fell
 // kickback - If true, players can rotate pieces even if flush against wall.
-boolean allowInfiniteRotation = false;
+//boolean allowInfiniteRotation = false;
+//boolean allowChainReactions = false;
 boolean allowKickBack= true;
-boolean allowChainReactions = false;
 boolean allowDrawingGhost = false;
 boolean allowFadeEffect = false;
 
+// Font stuff
+SpriteFont nullTerminatorFont;
 
+/*
+ */
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
+  
   debug = new Debugger();
   soundManager = new SoundManager(this);
   soundManager.init();
+  soundManager.setMute(true);
   
   backgroundImg = loadImage("images/background.jpg");
   
+  nullTerminatorFont = new SpriteFont("fonts/null_terminator_2x.png", 14, 14, 2);
+
+
   clearLineTicker = new Ticker();
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
@@ -133,21 +143,14 @@ public void setup(){
   Keyboard.setKeyDown(KEY_K, true);
   
   // assume muted?
-  //Keyboard.setKeyDown(KEY_M, true);
+  Keyboard.setKeyDown(KEY_M, true);
   
-   
-  for(int c = 0; c < NUM_COLS; c++){
-    for(int r = 0; r < NUM_ROWS; r++){
-      grid[c][r] = EMPTY;
-    }
-  }
-
+  clearGrid();
+  
   createPiece();
    
   createBorders();
 }
-
-
 
 /*
  */
@@ -189,6 +192,16 @@ public void createPiece(){
   currShapeCol = NUM_COLS/2;
   
   nextPieceQueue.pushBack(getRandomPiece());
+}
+
+/**
+ */
+public void clearGrid(){
+  for(int c = 0; c < NUM_COLS; c++){
+    for(int r = 0; r < NUM_ROWS; r++){
+      grid[c][r] = EMPTY;
+    }
+  }
 }
 
 /*
@@ -393,15 +406,12 @@ public void update(){
   
   findGhostPiecePosition();
   
-  // level is zero-based
-  debug.addString("Level: " + (level + 1));
-  debug.addString("Score: " + score);
-  debug.addString("----------------");
-  debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
+  //debug.addString("----------------");
+  /*debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
   debug.addString("G - Toggle Ghost piece ");
   debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
   debug.addString("M - Mute " + getOnStr(Keyboard.isKeyDown(KEY_M)));
-  debug.addString("P - Pause game");
+  debug.addString("P - Pause game");*/
 }
 
 public String getOnStr(boolean b){
@@ -634,7 +644,22 @@ public void draw(){
   popStyle();
   popMatrix();
   
+  drawText(nullTerminatorFont, "LEVEL " + str(level), 200, 20);
+  drawText(nullTerminatorFont, "SCORE " + str(score), 200, 40);
+    
   debug.clear();
+}
+
+/**
+  * TODO: fix me
+ */
+public void drawText(SpriteFont font, String text, int x, int y){
+  
+  for(int i = 0; i < text.length(); i++){
+    PImage charToPrint = font.getChar(text.charAt(i)); 
+    image(charToPrint, x, y);
+    x += font.getCharWidth() + 2;
+  }
 }
 
 /**

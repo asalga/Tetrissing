@@ -1,7 +1,5 @@
 import ddf.minim.*;
 
-
-
 SoundManager soundManager;
 final boolean DEBUG = false;
 
@@ -23,14 +21,28 @@ final int OLIVE   = 6;
 final int CYAN    = 7;
 final int WHITE   = 8;
 
+// We 'add' 1 to this before we render
+int level = 0;
+int score = 0;
 
-final int NUM_PIECES = 7;
+int SCORE_1_LINE  = 100;
+int SCORE_2_LINES = 250;
+int SCORE_3_LINES = 500;
+int SCORE_4_LINES = 600;
+
+final int MAX_LEVELS = 5;
+int scoreForThisLevel = 0;
+int[] scoreReqForNextLevel = new int[]{  SCORE_4_LINES * 2,
+                                         SCORE_4_LINES * 4,
+                                         SCORE_4_LINES * 6,
+                                         SCORE_4_LINES * 8,
+                                         SCORE_4_LINES * 10};
 
 Ticker clearLineTicker;
 
-boolean clearingLines = false;
 
-int START_ROW = 24;
+
+boolean clearingLines = false;
 
 int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
 
@@ -60,17 +72,13 @@ float rightBuffer = 0f;
 
 float blocksPerSecond = 10.0f;
 
-
-// Number of lines cleared and number
-// Number of times user cleared 4 lines in one shot
-int numLines;
-int numTetrises;
-int score;
-
 // Add 2 for left and right borders and 1 for floor
-final int NUM_COLS = 10 + 2;
+final int NUM_COLS = 10;  // 10 cols + 2 for border
 final int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
 final int CUT_OFF_INDEX = 3;
+
+// Don't include the floor
+final int LAST_ROW_INDEX = NUM_ROWS - 2;
 
 int BOX_SIZE = 16;
 
@@ -89,14 +97,60 @@ Ticker rightMoveTicker;
 
 
 // --- FEATURES ---
-// InfiniteRotation - Allows player to keep rotating piece even if it fell
 // kickback - If true, players can rotate pieces even if flush against wall.
-boolean allowInfiniteRotation = false;
+//boolean allowInfiniteRotation = false;
+//boolean allowChainReactions = false;
 boolean allowKickBack= true;
-boolean allowChainReactions = false;
 boolean allowDrawingGhost = false;
 boolean allowFadeEffect = false;
 
+// Font stuff
+SpriteFont nullTerminatorFont;
+
+/*
+ */
+public void setup(){
+  size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
+  
+  debug = new Debugger();
+  soundManager = new SoundManager(this);
+  soundManager.init();
+  soundManager.setMute(true);
+  
+  backgroundImg = loadImage("images/background.jpg");
+  
+  nullTerminatorFont = new SpriteFont("fonts/null_terminator_2x.png", 14, 14, 2);
+
+
+  clearLineTicker = new Ticker();
+  dropTicker = new Ticker();
+  leftMoveTicker = new Ticker();
+  rightMoveTicker = new Ticker();
+  
+  //
+  for(int i = 0; i < 3; i++){
+    nextPieceQueue.pushBack(getRandomPiece());
+  }
+
+
+  // P = pause
+  // G = ghost
+  // F = fade
+  // K = kickback
+  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K, KEY_M});
+  
+  // Assume the user wants kickback
+  Keyboard.setKeyDown(KEY_K, true);
+  
+  // assume muted?
+  Keyboard.setKeyDown(KEY_M, true);
+  
+  clearGrid();
+  
+  createPiece();
+   
+  createBorders();
+}
 
 /*
  */
@@ -117,7 +171,7 @@ public void drawShape(Shape shape, int colPos, int rowPos){
 
 /*
  */
-public Shape getRandomShape(){
+public Shape getRandomPiece(){
   int randInt = getRandomInt(0, 6);
   
   shapeStats[randInt]++;
@@ -131,57 +185,23 @@ public Shape getRandomShape(){
   else                   return new SShape();
 }
 
-public void setup(){
-  size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
-  debug = new Debugger();
-  soundManager = new SoundManager(this);
-  soundManager.init();
-  
-  backgroundImg = loadImage("images/background.jpg");
-  
-  clearLineTicker = new Ticker();
-  dropTicker = new Ticker();
-  leftMoveTicker = new Ticker();
-  rightMoveTicker = new Ticker();
-  
-  //
-  for(int i = 0; i < 3; i++){
-    nextPieceQueue.pushBack(getRandomShape());
-  }
-
-
-  // P = pause
-  // G = ghost
-  // F = fade
-  // K = kickback
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K, KEY_M});
-  
-  // Assume the user wants kickback
-  Keyboard.setKeyDown(KEY_K, true);
-  
-  // assume muted?
-  //Keyboard.setKeyDown(KEY_M, true);
-  
-  numLines = 0;
-   
-  for(int c = 0; c < NUM_COLS; c++){
-    for(int r = 0; r < NUM_ROWS; r++){
-      grid[c][r] = EMPTY;
-    }
-  }
-
-  createPiece();
-   
-  createBorders();
-}
-
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
   
   currShapeRow = 0;
   currShapeCol = NUM_COLS/2;
   
-  nextPieceQueue.pushBack(getRandomShape());
+  nextPieceQueue.pushBack(getRandomPiece());
+}
+
+/**
+ */
+public void clearGrid(){
+  for(int c = 0; c < NUM_COLS; c++){
+    for(int r = 0; r < NUM_ROWS; r++){
+      grid[c][r] = EMPTY;
+    }
+  }
 }
 
 /*
@@ -217,6 +237,22 @@ public void findGhostPiecePosition(){
   while(checkShapeCollision(currentShape, ghostShapeCol, ghostShapeRow + 1) == false){
     ghostShapeRow++;
   }
+}
+
+
+public void drawBackground(){
+  pushStyle();
+  noFill();
+  strokeWeight(1);
+  stroke(255, 32);
+  
+  // Draw a translucent grid
+  for(int cols = 0; cols < NUM_COLS; cols++){
+    for(int rows = CUT_OFF_INDEX; rows < NUM_ROWS; rows++){
+      rect(cols * BOX_SIZE, rows * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+    }
+  }
+  popStyle();
 }
 
 /*
@@ -354,7 +390,6 @@ public void update(){
   else if( Keyboard.isKeyDown(KEY_RIGHT) ){
     rightMoveTicker.tick();
     rightBuffer += rightMoveTicker.getDeltaSec() * blocksPerSecond;
-     
     
     // If we passed the tap threshold
     if(rightMoveTicker.getTotalTime() >= 0.12f){
@@ -371,14 +406,12 @@ public void update(){
   
   findGhostPiecePosition();
   
-  //debug.addString("FPS:" + (int)frameRate);
-  debug.addString("Score: " + score);
-  debug.addString("----------------");
-  debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
+  //debug.addString("----------------");
+  /*debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
   debug.addString("G - Toggle Ghost piece ");
   debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
   debug.addString("M - Mute " + getOnStr(Keyboard.isKeyDown(KEY_M)));
-  debug.addString("P - Pause game");
+  debug.addString("P - Pause game");*/
 }
 
 public String getOnStr(boolean b){
@@ -410,13 +443,20 @@ public void addPieceToBoard(Shape shape){
   
   int numLinesToClear = getNumLinesToClear();
   
+  // TODO: clean this
   switch(numLinesToClear){
     case 0: soundManager.playDropPieceSound(); break;
-    case 1: score += 100;break;
-    case 2: score += 250;break;
-    case 3: score += 450;break;
-    case 4: soundManager.playClearLinesSound();score += 800;break;
+    case 1: scoreForThisLevel += 100;score += 100;break;
+    case 2: scoreForThisLevel += 250;score += 250;break;
+    case 3: scoreForThisLevel += 450;score += 450;break;
+    case 4: soundManager.playClearLinesSound();scoreForThisLevel += 800;score += 800;break;
     default: break;
+  }
+  
+  //
+  if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
+    scoreForThisLevel = 0;
+    level++;
   }
   
   removeFilledLines();
@@ -430,8 +470,9 @@ public void addPieceToBoard(Shape shape){
 public int getNumLinesToClear(){
   int numLinesToClear = 0;
   
-  // Don't include the floor
-  for(int row = NUM_ROWS - 2; row > 0; row--){
+  // Don't include the floor and we technically
+  // don't need to include the cut off index.
+  for(int row = LAST_ROW_INDEX; row > CUT_OFF_INDEX; row--){
     
     boolean lineFull = true;
     for(int col = 1; col < NUM_COLS - 1; col++){
@@ -453,8 +494,8 @@ public int getNumLinesToClear(){
  * the current one.
  */
 public void removeFilledLines(){
-  for(int row = NUM_ROWS - 2; row > 0; row--){
-    
+
+  for(int row = LAST_ROW_INDEX; row > CUT_OFF_INDEX; row--){
     boolean isLineFull = true;
     for(int col = 1; col < NUM_COLS - 1; col++){
       if(grid[col][row] == EMPTY){
@@ -463,7 +504,7 @@ public void removeFilledLines(){
     }
     
     if(isLineFull){
-      moveAllRowsDown(row);
+      moveBlocksDownAboveRow(row);
       clearingLines = true;
       
       // Start from the bottom again
@@ -472,11 +513,18 @@ public void removeFilledLines(){
   }
 }
 
-/*
+/* This is separate from removeFilledLines to keep the code a bit more clear.
+ * Move all the blocks that are above the given row down 1 block
+ * @see removeFilledLines
  */
-public void moveAllRowsDown(int row){
+public void moveBlocksDownAboveRow(int row){
   // TODO: add bounds check
-  for(int r = row; r > 1; r--){
+  if(row >= NUM_ROWS || row <= CUT_OFF_INDEX){
+    return;
+  }
+  
+  // Go from given row to top of the board.
+  for(int r = row; r > CUT_OFF_INDEX; r--){
     for(int c = 1; c < NUM_COLS-1; c++){
       grid[c][r] = grid[c][r-1];
     }
@@ -491,7 +539,7 @@ public void dropPiece(){
   while(foundCollision == false){ 
     currShapeRow++;
     if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-      currShapeRow -= 1;
+      currShapeRow--;
       addPieceToBoard(currentShape);
       foundCollision = true;
     }
@@ -510,6 +558,8 @@ public boolean addedBoxInCutoff(){
   return false;
 }
 
+/*
+ */
 public int getRandomInt(int minVal, int maxVal) {
   return (int)random(minVal, maxVal + 1);
 }
@@ -517,7 +567,9 @@ public int getRandomInt(int minVal, int maxVal) {
 /**
  */
 public void draw(){
-    
+  
+
+  
   if(didDrawGameOver){
     return;
   }
@@ -574,6 +626,8 @@ public void draw(){
 
   drawCurrShape();
   
+  drawBackground();
+    
   drawBorders();
   
   pushMatrix();
@@ -590,7 +644,22 @@ public void draw(){
   popStyle();
   popMatrix();
   
+  drawText(nullTerminatorFont, "LEVEL " + str(level), 200, 20);
+  drawText(nullTerminatorFont, "SCORE " + str(score), 200, 40);
+    
   debug.clear();
+}
+
+/**
+  * TODO: fix me
+ */
+public void drawText(SpriteFont font, String text, int x, int y){
+  
+  for(int i = 0; i < text.length(); i++){
+    PImage charToPrint = font.getChar(text.charAt(i)); 
+    image(charToPrint, x, y);
+    x += font.getCharWidth() + 2;
+  }
 }
 
 /**
@@ -618,7 +687,7 @@ public void drawGhostPiece(){
   
   float opacity = (ghostShapeRow - currShapeRow) / (float)NUM_ROWS * 32;
   fill(col, opacity);
-  stroke(col, opacity * 4); 
+  stroke(col, opacity * 5); 
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
   popStyle();
 }

@@ -140,7 +140,6 @@ public void setup(){
   // assume muted?
   //Keyboard.setKeyDown(KEY_M, true);
   
-  numLines = 0;
    
   for(int c = 0; c < NUM_COLS; c++){
     for(int r = 0; r < NUM_ROWS; r++){
@@ -474,9 +473,8 @@ public int getNumLinesToClear(){
  * the current one.
  */
 public void removeFilledLines(){
-  // TODO: go until 0?
-  for(int row = LAST_ROW_INDEX; row > 0; row--){
-    
+
+  for(int row = LAST_ROW_INDEX; row > CUT_OFF_INDEX; row--){
     boolean isLineFull = true;
     for(int col = 1; col < NUM_COLS - 1; col++){
       if(grid[col][row] == EMPTY){
@@ -485,7 +483,7 @@ public void removeFilledLines(){
     }
     
     if(isLineFull){
-      moveAllRowsDown(row);
+      moveBlocksDownAboveRow(row);
       clearingLines = true;
       
       // Start from the bottom again
@@ -494,11 +492,18 @@ public void removeFilledLines(){
   }
 }
 
-/*
+/* This is separate from removeFilledLines to keep the code a bit more clear.
+ * Move all the blocks that are above the given row down 1 block
+ * @see removeFilledLines
  */
-public void moveAllRowsDown(int row){
+public void moveBlocksDownAboveRow(int row){
   // TODO: add bounds check
-  for(int r = row; r > 1; r--){
+  if(row >= NUM_ROWS || row <= CUT_OFF_INDEX){
+    return;
+  }
+  
+  // Go from given row to top of the board.
+  for(int r = row; r > CUT_OFF_INDEX; r--){
     for(int c = 1; c < NUM_COLS-1; c++){
       grid[c][r] = grid[c][r-1];
     }
@@ -513,7 +518,7 @@ public void dropPiece(){
   while(foundCollision == false){ 
     currShapeRow++;
     if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-      currShapeRow -= 1;
+      currShapeRow--;
       addPieceToBoard(currentShape);
       foundCollision = true;
     }
@@ -532,6 +537,8 @@ public boolean addedBoxInCutoff(){
   return false;
 }
 
+/*
+ */
 public int getRandomInt(int minVal, int maxVal) {
   return (int)random(minVal, maxVal + 1);
 }

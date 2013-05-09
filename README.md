@@ -21,7 +21,6 @@ Known Issues:
  - Add animation on line clear
  - Fix dropping piece while pause
  - Fix drawing drop streak
- - TSpin on far left moves piece to far right
  - Fix audio for Firefox
 
 Future stuff:

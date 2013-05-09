@@ -1,7 +1,7 @@
 import ddf.minim.*;
 
 SoundManager soundManager;
-final boolean DEBUG = true;
+final boolean DEBUG = false;
 
 final int T_SHAPE = 0;
 final int L_SHAPE = 1;
@@ -752,7 +752,6 @@ public void requestRotatePiece(){
   
       // If the shape is still colliding (maybe from hitting somehtnig on the left side of the shape
       if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-        println("undoing movement");
         currShapeCol -= amountToShiftRight;
       }
     }

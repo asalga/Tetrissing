@@ -25,6 +25,7 @@ final int NUM_PIECES = 7;
 
 // We 'add' 1 to this before we render
 int level = 0;
+int score = 0;
 
 int SCORE_1_LINE  = 100;
 int SCORE_2_LINES = 250;
@@ -72,16 +73,15 @@ float rightBuffer = 0f;
 float blocksPerSecond = 10.0f;
 
 
-// Number of lines cleared and number
-// Number of times user cleared 4 lines in one shot
-int numLines;
-int numTetrises;
-int score;
+
 
 // Add 2 for left and right borders and 1 for floor
-final int NUM_COLS = 10 + 2;
+final int NUM_COLS = 10;  // 10 cols + 2 for border
 final int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
 final int CUT_OFF_INDEX = 3;
+
+// Don't include the floor
+final int LAST_ROW_INDEX = 30 - 2;
 
 int BOX_SIZE = 16;
 
@@ -109,39 +109,6 @@ boolean allowDrawingGhost = false;
 boolean allowFadeEffect = false;
 
 
-/*
- */
-public void drawShape(Shape shape, int colPos, int rowPos){
-  int[][] arr = shape.getArr();
-  int shapeSize = shape.getSize();
-    
-  for(int c = 0; c < shapeSize; c++){
-    for(int r = 0; r < shapeSize; r++){
-      
-      // Transposing here!
-      if(arr[r][c] != 0){
-        rect((c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE), BOX_SIZE, BOX_SIZE);
-      }
-    }
-  }
-}
-
-/*
- */
-public Shape getRandomShape(){
-  int randInt = getRandomInt(0, 6);
-  
-  shapeStats[randInt]++;
-  
-  if(randInt == T_SHAPE) return new TShape();
-  if(randInt == L_SHAPE) return new LShape();
-  if(randInt == Z_SHAPE) return new ZShape();
-  if(randInt == O_SHAPE) return new OShape();
-  if(randInt == J_SHAPE) return new JShape();
-  if(randInt == I_SHAPE) return new IShape();
-  else                   return new SShape();
-}
-
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
   debug = new Debugger();
@@ -157,7 +124,7 @@ public void setup(){
   
   //
   for(int i = 0; i < 3; i++){
-    nextPieceQueue.pushBack(getRandomShape());
+    nextPieceQueue.pushBack(getRandomPiece());
   }
 
 
@@ -186,13 +153,48 @@ public void setup(){
   createBorders();
 }
 
+
+
+/*
+ */
+public void drawShape(Shape shape, int colPos, int rowPos){
+  int[][] arr = shape.getArr();
+  int shapeSize = shape.getSize();
+    
+  for(int c = 0; c < shapeSize; c++){
+    for(int r = 0; r < shapeSize; r++){
+      
+      // Transposing here!
+      if(arr[r][c] != 0){
+        rect((c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE), BOX_SIZE, BOX_SIZE);
+      }
+    }
+  }
+}
+
+/*
+ */
+public Shape getRandomPiece(){
+  int randInt = getRandomInt(0, 6);
+  
+  shapeStats[randInt]++;
+  
+  if(randInt == T_SHAPE) return new TShape();
+  if(randInt == L_SHAPE) return new LShape();
+  if(randInt == Z_SHAPE) return new ZShape();
+  if(randInt == O_SHAPE) return new OShape();
+  if(randInt == J_SHAPE) return new JShape();
+  if(randInt == I_SHAPE) return new IShape();
+  else                   return new SShape();
+}
+
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
   
   currShapeRow = 0;
   currShapeCol = NUM_COLS/2;
   
-  nextPieceQueue.pushBack(getRandomShape());
+  nextPieceQueue.pushBack(getRandomPiece());
 }
 
 /*
@@ -365,7 +367,6 @@ public void update(){
   else if( Keyboard.isKeyDown(KEY_RIGHT) ){
     rightMoveTicker.tick();
     rightBuffer += rightMoveTicker.getDeltaSec() * blocksPerSecond;
-     
     
     // If we passed the tap threshold
     if(rightMoveTicker.getTotalTime() >= 0.12f){
@@ -382,8 +383,8 @@ public void update(){
   
   findGhostPiecePosition();
   
-  //debug.addString("FPS:" + (int)frameRate);
-  debug.addString("Level: " + level + 1);
+  // level is zero-based
+  debug.addString("Level: " + (level + 1));
   debug.addString("Score: " + score);
   debug.addString("----------------");
   debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
@@ -422,6 +423,7 @@ public void addPieceToBoard(Shape shape){
   
   int numLinesToClear = getNumLinesToClear();
   
+  // TODO: clean this
   switch(numLinesToClear){
     case 0: soundManager.playDropPieceSound(); break;
     case 1: scoreForThisLevel += 100;score += 100;break;
@@ -448,8 +450,9 @@ public void addPieceToBoard(Shape shape){
 public int getNumLinesToClear(){
   int numLinesToClear = 0;
   
-  // Don't include the floor
-  for(int row = NUM_ROWS - 2; row > 0; row--){
+  // Don't include the floor and we technically
+  // don't need to include the cut off index.
+  for(int row = LAST_ROW_INDEX; row > CUT_OFF_INDEX; row--){
     
     boolean lineFull = true;
     for(int col = 1; col < NUM_COLS - 1; col++){
@@ -471,7 +474,8 @@ public int getNumLinesToClear(){
  * the current one.
  */
 public void removeFilledLines(){
-  for(int row = NUM_ROWS - 2; row > 0; row--){
+  // TODO: go until 0?
+  for(int row = LAST_ROW_INDEX; row > 0; row--){
     
     boolean isLineFull = true;
     for(int col = 1; col < NUM_COLS - 1; col++){

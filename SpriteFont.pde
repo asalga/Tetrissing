@@ -39,9 +39,6 @@ public class SpriteFont{
       }
     }
     
-    //println("startX: " + startX);
-    //println("startY: " + endX);
-    
     return inImage.get(startX, 0, endX+1, inImage.height); 
   }
   
@@ -71,7 +68,6 @@ public class SpriteFont{
     
     
     // For each character, truncate the x margin
-
     for(int currChar = 0; currChar < 96; currChar++){
       chars[currChar] = truncateImage( chars[currChar] );
     }
@@ -80,11 +76,7 @@ public class SpriteFont{
   //public static void create(String imageFilename, int charWidth, int charHeight, int borderSize){ 
   //PImage fontSheet = loadImage(imageFilename);
   public PImage getChar(char ch){
-    // space s  ch);
-    int asciiCode = (int)ch;
-    // println(asciiCode);
-    // println(asciiCode-32);
-    // a = 97
+    int asciiCode = charCodeAt(ch);
     return chars[asciiCode-32];
   }
   

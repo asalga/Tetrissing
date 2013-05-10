@@ -1,5 +1,5 @@
 /*
- @pjs preload="data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
+ @pjs preload="data/fonts/null_terminator_2x.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
  */
  
 import ddf.minim.*;
@@ -671,18 +671,19 @@ public void draw(){
   debug.clear();
 }
 
+public int charCodeAt(char ch){
+
+  return ch;
+}
+
 /**
   * TODO: fix me
  */
 public void drawText(SpriteFont font, String text, int x, int y){
   
   for(int i = 0; i < text.length(); i++){
-    PImage charToPrint = font.getChar("" + text.charAt(i));
-    
-    // JavaScript has undefined for this value here.
-    if(charToPrint){
-      image(charToPrint, x, y);
-    }
+    PImage charToPrint = font.getChar(text.charAt(i));
+    image(charToPrint, x, y);
     x += font.getCharWidth() + 2;
   }
 }

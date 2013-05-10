@@ -15,13 +15,14 @@ To Build:
 Then go to http://localhost:8080 
 
 Known Issues:
- - Add sprite-based text
  - Make good UI
  - User can slide piece along floor
  - Add animation on line clear
  - Fix dropping piece while pause
  - Fix drawing drop streak
  - Fix audio for Firefox
+ - Make Utils.js a static class
+ - Allow hitting key to restart
 
 Future stuff:
  - Add chain reaction feature

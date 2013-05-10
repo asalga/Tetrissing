@@ -1,3 +1,7 @@
+/*
+ @pjs preload="data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
+ */
+ 
 import ddf.minim.*;
 
 SoundManager soundManager;
@@ -118,24 +122,24 @@ public void setup(){
   
 
 
-images[0] = loadImage("images/red.png");
-images[RED] = loadImage("images/red.png");
-images[ORANGE] = loadImage("images/orange.png");
-images[BLUE] = loadImage("images/blue.png");
-images[PINK] = loadImage("images/pink.png");
-images[GREEN] = loadImage("images/green.png");
-images[PURPLE] = loadImage("images/purple.png");
-images[BABYBLUE] = loadImage("images/babyblue.png");
-images[WHITE] = loadImage("images/babyblue.png");
+images[0] = loadImage("data/images/red.png");
+images[RED] = loadImage("data/images/red.png");
+images[ORANGE] = loadImage("data/images/orange.png");
+images[BLUE] = loadImage("data/images/blue.png");
+images[PINK] = loadImage("data/images/pink.png");
+images[GREEN] = loadImage("data/images/green.png");
+images[PURPLE] = loadImage("data/images/purple.png");
+images[BABYBLUE] = loadImage("data/images/babyblue.png");
+images[WHITE] = loadImage("data/images/babyblue.png");
   
   debug = new Debugger();
   soundManager = new SoundManager(this);
   soundManager.init();
   soundManager.setMute(true);
   
-  backgroundImg = loadImage("images/background.jpg");
+ // backgroundImg = loadImage("data/images/background.jpg");
   
-  nullTerminatorFont = new SpriteFont("fonts/null_terminator_2x.png", 14, 14, 2);
+  nullTerminatorFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
 
 
   clearLineTicker = new Ticker();
@@ -180,7 +184,6 @@ public void drawShape(Shape shape, int colPos, int rowPos){
       // Transposing here!
       if(arr[r][c] != 0){
         image( getImageFromID(shape.getColor()), (c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE));
-        //rect((c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE), BOX_SIZE, BOX_SIZE);
       }
     }
   }
@@ -597,7 +600,7 @@ public void draw(){
   }
   
   if(Keyboard.isKeyDown(KEY_P) ){
-    //showGamePaused();
+    showGamePaused();
     return;
   }
   
@@ -674,8 +677,12 @@ public void draw(){
 public void drawText(SpriteFont font, String text, int x, int y){
   
   for(int i = 0; i < text.length(); i++){
-    PImage charToPrint = font.getChar(text.charAt(i)); 
-    image(charToPrint, x, y);
+    PImage charToPrint = font.getChar("" + text.charAt(i));
+    
+    // JavaScript has undefined for this value here.
+    if(charToPrint){
+      image(charToPrint, x, y);
+    }
     x += font.getCharWidth() + 2;
   }
 }

@@ -3,7 +3,7 @@ public class LShape extends Shape{
   LShape(){
     size = 3;
     numStates = 4;
-    _color = MAGENTA;
+    _color = PINK;
     changeShape();
   }
   

@@ -3,6 +3,8 @@ import ddf.minim.*;
 SoundManager soundManager;
 final boolean DEBUG = false;
 
+
+
 final int T_SHAPE = 0;
 final int L_SHAPE = 1;
 final int J_SHAPE = 2;
@@ -14,12 +16,14 @@ final int S_SHAPE = 6;
 final int EMPTY   = 0;
 final int RED     = 1;
 final int ORANGE  = 2;
-final int MAGENTA = 3;
+final int PINK    = 3;
 final int BLUE    = 4;
 final int GREEN   = 5;
-final int OLIVE   = 6;
-final int CYAN    = 7;
+final int PURPLE   = 6;
+final int BABYBLUE    = 7;
 final int WHITE   = 8;
+
+PImage[] images = new PImage[9];
 
 // We 'add' 1 to this before we render
 int level = 0;
@@ -74,7 +78,7 @@ float blocksPerSecond = 10.0f;
 
 // Add 2 for left and right borders and 1 for floor
 final int NUM_COLS = 10;  // 10 cols + 2 for border
-final int NUM_ROWS = 30;  // 25 rows + 1 floor + 4 extra
+final int NUM_ROWS = 25;  // 25 rows + 1 floor + 4 extra
 final int CUT_OFF_INDEX = 3;
 
 // Don't include the floor
@@ -111,6 +115,18 @@ SpriteFont nullTerminatorFont;
  */
 public void setup(){
   size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
+  
+
+
+images[0] = loadImage("images/red.png");
+images[RED] = loadImage("images/red.png");
+images[ORANGE] = loadImage("images/orange.png");
+images[BLUE] = loadImage("images/blue.png");
+images[PINK] = loadImage("images/pink.png");
+images[GREEN] = loadImage("images/green.png");
+images[PURPLE] = loadImage("images/purple.png");
+images[BABYBLUE] = loadImage("images/babyblue.png");
+images[WHITE] = loadImage("images/babyblue.png");
   
   debug = new Debugger();
   soundManager = new SoundManager(this);
@@ -163,7 +179,8 @@ public void drawShape(Shape shape, int colPos, int rowPos){
       
       // Transposing here!
       if(arr[r][c] != 0){
-        rect((c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE), BOX_SIZE, BOX_SIZE);
+        image( getImageFromID(shape.getColor()), (c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE));
+        //rect((c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE), BOX_SIZE, BOX_SIZE);
       }
     }
   }
@@ -580,7 +597,7 @@ public void draw(){
   }
   
   if(Keyboard.isKeyDown(KEY_P) ){
-    showGamePaused();
+    //showGamePaused();
     return;
   }
   
@@ -624,9 +641,10 @@ public void draw(){
   findGhostPiecePosition();
   drawGhostPiece();
 
-  drawCurrShape();
+  //drawCurrShape();
+  drawShape(currentShape, currShapeCol, currShapeRow);
   
-  drawBackground();
+  //drawBackground();
     
   drawBorders();
   
@@ -665,13 +683,8 @@ public void drawText(SpriteFont font, String text, int x, int y){
 /**
  */
 public void drawNextShape(){
-  pushStyle();
   Shape nextShape = (Shape)nextPieceQueue.peekFront();
-  fill(getColorFromID(nextShape.getColor()));
-  stroke(255);
-  strokeWeight(1);
   drawShape(nextShape, 20, 0);
-  popStyle();
 }
 
 /* A ghost piece shows where the piece the user
@@ -682,29 +695,18 @@ public void drawGhostPiece(){
     return;
   }
   
-  pushStyle();
-  color col = getColorFromID(currentShape.getColor());
-  
-  float opacity = (ghostShapeRow - currShapeRow) / (float)NUM_ROWS * 32;
-  fill(col, opacity);
-  stroke(col, opacity * 5); 
+  //pushStyle();
+  //color col = getColorFromID(currentShape.getColor());
+  //float opacity = (ghostShapeRow - currShapeRow) / (float)NUM_ROWS * 32;
+  //fill(col, opacity);
+  //stroke(col, opacity * 5); 
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
-  popStyle();
-}
-
-public void drawCurrShape(){
-  pushStyle();
-  color _col = getColorFromID(currentShape.getColor());
-  fill(_col);
-  stroke(255);
-  strokeWeight(1);
-  drawShape(currentShape, currShapeCol, currShapeRow);
-  popStyle();
+  //popStyle();
 }
 
 /*
  */
-public color getColorFromID(int col){
+/*public color getColorFromID(int col){
   if(col == RED)    { return color(#FF0000); }
   if(col == ORANGE) { return color(#FFA500); }
   if(col == MAGENTA){ return color(#FF00FF); }
@@ -713,6 +715,10 @@ public color getColorFromID(int col){
   if(col == OLIVE)  { return color(#808000); }
   if(col == CYAN)   { return color(#00FFFF); }
   else              { return color(#FFFFFF); }
+}*/
+
+public PImage getImageFromID(int col){
+  return images[col];
 }
 
 /*
@@ -825,12 +831,12 @@ public void drawBorders(){
   popStyle();
 }
 
+/*
+ *
+ */
 public void drawBox(int col, int row, int _color){
   if(_color != EMPTY){
-    pushStyle();
-    fill(getColorFromID(_color));
-    rect(col * BOX_SIZE, row * BOX_SIZE, BOX_SIZE, BOX_SIZE);
-    popStyle();
+    image(getImageFromID(_color), col * BOX_SIZE, row * BOX_SIZE);
   }
 }
 

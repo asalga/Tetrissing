@@ -3,7 +3,7 @@ public class ZShape extends Shape{
   ZShape(){
     size = 3;
     numStates = 2;
-    _color = CYAN;
+    _color = BABYBLUE;
     changeShape();
   }
     

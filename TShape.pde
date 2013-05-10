@@ -3,7 +3,7 @@ public class TShape extends Shape{
   TShape(){
     size = 3;
     numStates = 4;
-    _color = OLIVE;  
+    _color = PURPLE;  
     changeShape();
   }
   

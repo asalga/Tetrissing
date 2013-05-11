@@ -29,4 +29,8 @@ public class Queue<T>{
   public T peekFront(){
     return items.get(0);
   }
+  
+  public void clear(){
+    items.clear();
+  }
 }

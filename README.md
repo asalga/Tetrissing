@@ -22,7 +22,8 @@ Known Issues:
  - Fix drawing drop streak
  - Fix audio for Firefox
  - Make Utils.js a static class
- - Allow hitting key to restart
+ - Fix rendering ghost piece
+ - Fix spinning piece
 
 Future stuff:
  - Add chain reaction feature

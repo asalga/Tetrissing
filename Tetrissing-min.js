@@ -102,9 +102,6 @@ Ticker rightMoveTicker;
 SoundManager soundManager;
 
 // --- FEATURES ---
-// kickback - If true, players can rotate pieces even if flush against wall.
-//boolean allowInfiniteRotation = false;
-//boolean allowChainReactions = false;
 boolean allowKickBack= true;
 boolean allowDrawingGhost = false;
 boolean allowFadeEffect = false;
@@ -131,6 +128,8 @@ public void setup(){
   
   backgroundImg = loadImage("data/images/bk.png");
   
+  // Large font used for level, score, "Game Over" and "Paused"
+  // Small font is used for some instructions
   largeFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
   smallFont = new SpriteFont("data/fonts/null_terminator.png", 7, 7, 1);
   

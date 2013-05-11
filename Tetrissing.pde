@@ -84,10 +84,10 @@ final int CUT_OFF_INDEX = 3;
 final int LAST_ROW_INDEX = NUM_ROWS - 2;
 
 // TODO: refactor to BLOCK_SIZE
-int BOX_SIZE = 16;
+final int BLOCK_SIZE = 16;
 
-final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4);
+//final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
+//final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4);
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -168,7 +168,7 @@ public void drawShape(Shape shape, int colPos, int rowPos){
       
       // Transposing here!
       if(arr[r][c] != 0){
-        image(getImageFromID(shape.getColor()), (c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE));
+        image(getImageFromID(shape.getColor()), (c * BLOCK_SIZE) + (colPos * BLOCK_SIZE), (r * BLOCK_SIZE) + (rowPos * BLOCK_SIZE));
       }
     }
   }
@@ -255,7 +255,7 @@ public void drawBackground(){
   // Draw a translucent grid
   for(int cols = 0; cols < NUM_COLS; cols++){
     for(int rows = CUT_OFF_INDEX; rows < NUM_ROWS; rows++){
-      rect(cols * BOX_SIZE, rows * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+      rect(cols * BLOCK_SIZE, rows * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
     }
   }
   popStyle();
@@ -452,24 +452,11 @@ public void addPieceToBoard(Shape shape){
   }
   
   int numLinesToClear = getNumLinesToClear();
-  
-  // TODO: clean this
-  switch(numLinesToClear){
-    case 0: soundManager.playDropPieceSound(); break;
-    case 1: scoreForThisLevel += 100;score += 100;break;
-    case 2: scoreForThisLevel += 250;score += 250;break;
-    case 3: scoreForThisLevel += 450;score += 450;break;
-    case 4: soundManager.playClearLinesSound();scoreForThisLevel += 800;score += 800;break;
-    default: break;
-  }
-  
-  
+    
   // play score sound
-  //
+  //playSoundByLinesCleared(numLinesToClear);
   
-  // increse score
-  //
-  
+  increaseScoreByLinesCleared(numLinesToClear);
   
   //
   if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
@@ -480,6 +467,18 @@ public void addPieceToBoard(Shape shape){
   removeFilledLines();
   
   createPiece();
+}
+
+/*
+ */
+public void increaseScoreByLinesCleared(int linesCleared){
+  switch(linesCleared){
+    case 1: scoreForThisLevel += 100;score += 100;break;
+    case 2: scoreForThisLevel += 250;score += 250;break;
+    case 3: scoreForThisLevel += 450;score += 450;break;
+    case 4: scoreForThisLevel += 800;score += 800;break;
+    default: break;
+  }
 }
 
 /**
@@ -643,10 +642,8 @@ public void draw(){
   popMatrix();*/
   
   pushMatrix();
-  translate(10, BOX_SIZE * 4 -4);
+  translate(10, (BLOCK_SIZE * 4) - 4);
   drawBoard();
-  
-  
   
   findGhostPiecePosition();
   drawGhostPiece();
@@ -654,7 +651,7 @@ public void draw(){
   drawShape(currentShape, currShapeCol, currShapeRow);
   
   //drawBackground();
-    popMatrix();
+  popMatrix();
     
     
   image(backgroundImg, 0, 0);
@@ -845,34 +842,12 @@ public void drawBoard(){
   }
 }
 
-/* Draw the board borders
- */
-public void drawBorders(){
-  pushStyle();
-  noStroke();
-  fill(256, 256, 256);
-  
-  // Floor
-  for(int col = 0; col < NUM_COLS; col++){
-    rect(col * BOX_SIZE, (NUM_ROWS-1) * BOX_SIZE, BOX_SIZE, BOX_SIZE);
-  }
-  
-  for(int row = 2; row < NUM_ROWS; row++){
-    rect(0, row * BOX_SIZE, BOX_SIZE, BOX_SIZE);
-  }
-
-  for(int row = 2; row < NUM_ROWS; row++){
-    rect((NUM_COLS-1) * BOX_SIZE, row * BOX_SIZE, BOX_SIZE, BOX_SIZE);
-  }
-  popStyle();
-}
-
 /*
  *
  */
 public void drawBox(int col, int row, int _color){
   if(_color != EMPTY){
-    image(getImageFromID(_color), col * BOX_SIZE, row * BOX_SIZE);
+    image(getImageFromID(_color), col * BLOCK_SIZE, row * BLOCK_SIZE);
   }
 }
 

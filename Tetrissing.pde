@@ -1,5 +1,5 @@
 /*
- @pjs preload="data/fonts/null_terminator_2x.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
+ @pjs preload="data/images/bk.png,data/fonts/null_terminator_2x.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
  */ 
 import ddf.minim.*;
 
@@ -76,7 +76,7 @@ float rightBuffer = 0f;
 float blocksPerSecond = 10.0f;
 
 // Add 2 for left and right borders and 1 for floor
-final int NUM_COLS = 10;  // 10 cols + 2 for border
+final int NUM_COLS = 12;  // 10 cols + 2 for border
 final int NUM_ROWS = 25;  // 25 rows + 1 floor + 4 extra
 final int CUT_OFF_INDEX = 3;
 
@@ -115,7 +115,7 @@ SpriteFont nullTerminatorFont;
 /*
  */
 public void setup(){
-  size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
+  size(337, 464);
   
   // TODO: fix this
   //images[0] = loadImage("data/images/red.png");
@@ -128,7 +128,7 @@ public void setup(){
   images[BABYBLUE] = loadImage("data/images/babyblue.png");
   images[WHITE] = loadImage("data/images/babyblue.png");
   
-  // backgroundImg = loadImage("data/images/background.jpg");
+  backgroundImg = loadImage("data/images/bk.png");
   nullTerminatorFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
   
   debug = new Debugger();
@@ -628,27 +628,35 @@ public void draw(){
     background(0);
   }
   
-  translate(0, BOX_SIZE * 4);
+  
+  
   
   // Draw cutoff
-  pushMatrix();
+  /*pushMatrix();
   translate(0, BOX_SIZE * 3);
   pushStyle();
   fill(45, 0, 0, 200);
   rect(0, 0, BOX_SIZE * NUM_COLS, BOX_SIZE);
   popStyle();
-  popMatrix();
+  popMatrix();*/
   
+  pushMatrix();
+  translate(10, BOX_SIZE * 4 -4);
   drawBoard();
+  
+  
   
   findGhostPiecePosition();
   drawGhostPiece();
 
   drawShape(currentShape, currShapeCol, currShapeRow);
   
-  drawBackground();
+  //drawBackground();
+    popMatrix();
     
-  drawBorders();
+    
+  image(backgroundImg, 0, 0);
+  //drawBorders();
   
   pushMatrix();
   translate(-100, 200);
@@ -664,8 +672,8 @@ public void draw(){
   popStyle();
   popMatrix();
   
-  drawText(nullTerminatorFont, "LEVEL " + str(level+1), 200, 20);
-  drawText(nullTerminatorFont, "SCORE " + str(score), 200, 40);
+  drawText(nullTerminatorFont, "LEVEL " + str(level+1), 150, 20);
+  drawText(nullTerminatorFont, "SCORE " + str(score), 150, 40);
     
   debug.clear();
 }

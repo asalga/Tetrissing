@@ -77,17 +77,13 @@ float blocksPerSecond = 10.0f;
 
 // Add 2 for left and right borders and 1 for floor
 final int NUM_COLS = 12;  // 10 cols + 2 for border
-final int NUM_ROWS = 25;  // 25 rows + 1 floor + 4 extra
+final int NUM_ROWS = 25;  // 20 rows + 1 floor + 4 extra
 final int CUT_OFF_INDEX = 3;
 
-// Don't include the floor
+// This is referenced often, so calculate it here, but don't include the floor.
 final int LAST_ROW_INDEX = NUM_ROWS - 2;
 
-// TODO: refactor to BLOCK_SIZE
 final int BLOCK_SIZE = 16;
-
-//final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
-//final int BOARD_H_IN_PX = NUM_ROWS * BOX_SIZE + (BOX_SIZE * 4);
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -246,7 +242,7 @@ public void findGhostPiecePosition(){
 
 /*
  */
-public void drawBackground(){
+public void drawDebugGrid(){
   pushStyle();
   noFill();
   strokeWeight(1);
@@ -603,8 +599,6 @@ public void draw(){
     return;
   }
   
-  
-  
   update();
   
   /*if(clearingLines){
@@ -628,9 +622,6 @@ public void draw(){
   else{
     background(0);
   }
-  
-  
-  
   
   // Draw cutoff
   /*pushMatrix();
@@ -741,13 +732,10 @@ public void drawGhostPiece(){
     return;
   }
   
-  //pushStyle();
-  //color col = getColorFromID(currentShape.getColor());
-  //float opacity = (ghostShapeRow - currShapeRow) / (float)NUM_ROWS * 32;
-  //fill(col, opacity);
-  //stroke(col, opacity * 5); 
+  pushStyle();
+  tint(255, 32);
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
-  //popStyle();
+  popStyle();
 }
 
 public PImage getImageFromID(int col){

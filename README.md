@@ -22,8 +22,10 @@ Known Issues:
  - Fix drawing drop streak
  - Fix audio for Firefox
  - Make Utils.js a static class
- - Fix rendering ghost piece
+ - Fix rendering ghost piece as sprite
  - Fix spinning piece
+ - make height of tetris 'window' smaller
+ - Prevent pause after game over
 
 Future stuff:
  - Add chain reaction feature

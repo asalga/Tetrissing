@@ -110,12 +110,13 @@ boolean allowDrawingGhost = false;
 boolean allowFadeEffect = false;
 
 // Font stuff
-SpriteFont nullTerminatorFont;
+SpriteFont largeFont;
+SpriteFont smallFont;
 
 /*
  */
 public void setup(){
-  size(337, 464);
+  size(284, 464);
   
   // TODO: fix this
   //images[0] = loadImage("data/images/red.png");
@@ -129,12 +130,13 @@ public void setup(){
   images[WHITE] = loadImage("data/images/babyblue.png");
   
   backgroundImg = loadImage("data/images/bk.png");
-  nullTerminatorFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
+  
+  largeFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
+  smallFont = new SpriteFont("data/fonts/null_terminator.png", 7, 7, 1);
   
   debug = new Debugger();
   soundManager = new SoundManager(this);
   soundManager.init();
-  soundManager.setMute(true);
   
   // Timers
   clearLineTicker = new Ticker();
@@ -167,7 +169,7 @@ public void drawShape(Shape shape, int colPos, int rowPos){
       
       // Transposing here!
       if(arr[r][c] != 0){
-        image( getImageFromID(shape.getColor()), (c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE));
+        image(getImageFromID(shape.getColor()), (c * BOX_SIZE) + (colPos * BOX_SIZE), (r * BOX_SIZE) + (rowPos * BOX_SIZE));
       }
     }
   }
@@ -314,6 +316,8 @@ public void moveSideways(int amt){
 /*
  */
 public void update(){
+  
+  soundManager.setMute(Keyboard.isKeyDown(KEY_M));
   
   dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
@@ -605,7 +609,7 @@ public void draw(){
   
   update();
   
-  if(clearingLines){
+  /*if(clearingLines){
     clearLineTicker.tick();
     if(clearLineTicker.getTotalTime() < 0.5f){
       return;
@@ -614,8 +618,7 @@ public void draw(){
       clearLineTicker.reset();
       clearingLines = false;
     }
-  }
-    
+  }*/
   
   if(allowFadeEffect){
     pushStyle();
@@ -671,11 +674,17 @@ public void draw(){
   debug.draw();
   popStyle();
   popMatrix();
-  
-  drawText(nullTerminatorFont, "LEVEL " + str(level+1), 150, 20);
-  drawText(nullTerminatorFont, "SCORE " + str(score), 150, 40);
-    
+
+  drawScoreAndLevel();
+      
   debug.clear();
+}
+
+/**
+ */
+public void drawScoreAndLevel(){
+  drawText(largeFont, "LEVEL " + str(level+1), 50, 20);
+  drawText(largeFont, "SCORE " + str(score), 50, 40);
 }
 
 // Encapsulate
@@ -872,12 +881,17 @@ public void drawBox(int col, int row, int _color){
  */
 public void showGamePaused(){
   pushStyle();
-  fill(128, 0, 0);
+  fill(128, 0, 0, 1);
   noStroke();
-  rect(0, BOX_SIZE * 3, width - 200, height);
+  rect(0, 0, width, height);
   popStyle();
   
-  drawText(nullTerminatorFont, "PAUSED", width/2 - (5 * 16)/2, 30);
+  image(backgroundImg, 0, 0);
+  
+  drawText(largeFont, "PAUSED", 60, 250);
+  drawText(smallFont, "Hit P to unpause", 30, 300);
+  
+  drawScoreAndLevel();
 }
 
 /*
@@ -886,12 +900,17 @@ public void showGamePaused(){
  */
 public void showGameOver(){
   pushStyle();
-  fill(128, 128);
+  fill(128, 0,0,128);
   noStroke();
   rect(0, 0, width, height);
   popStyle();
   
-  drawText(nullTerminatorFont, "GAME OVER", width/2 - (9 * 16)/2, 50);
+  image(backgroundImg, 0, 0);
+  drawText(largeFont, "GAME OVER", 30, 250);
+  
+  drawScoreAndLevel();
+  
+  drawText(smallFont, "Hit R to restart", 30, 300);
   
   didDrawGameOver = true;
 }

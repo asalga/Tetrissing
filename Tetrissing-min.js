@@ -1,13 +1,9 @@
 /*
- @pjs preload="data/fonts/null_terminator_2x.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
- */
- 
+ @pjs preload="data/images/bk.png,data/fonts/null_terminator_2x.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
+ */ 
 import ddf.minim.*;
 
-SoundManager soundManager;
 final boolean DEBUG = false;
-
-
 
 final int T_SHAPE = 0;
 final int L_SHAPE = 1;
@@ -17,29 +13,29 @@ final int O_SHAPE = 4;
 final int Z_SHAPE = 5;
 final int S_SHAPE = 6;
 
-final int EMPTY   = 0;
-final int RED     = 1;
-final int ORANGE  = 2;
-final int PINK    = 3;
-final int BLUE    = 4;
-final int GREEN   = 5;
+final int EMPTY    = 0;
+final int RED      = 1;
+final int ORANGE   = 2;
+final int PINK     = 3;
+final int BLUE     = 4;
+final int GREEN    = 5;
 final int PURPLE   = 6;
-final int BABYBLUE    = 7;
-final int WHITE   = 8;
+final int BABYBLUE = 7;
+final int WHITE    = 8;
 
+// TODO: fix this
 PImage[] images = new PImage[9];
 
-// We 'add' 1 to this before we render
-int level = 0;
-int score = 0;
+int level;
+int score;
 
-int SCORE_1_LINE  = 100;
-int SCORE_2_LINES = 250;
-int SCORE_3_LINES = 500;
-int SCORE_4_LINES = 600;
+final int SCORE_1_LINE  = 100;
+final int SCORE_2_LINES = 250;
+final int SCORE_3_LINES = 500;
+final int SCORE_4_LINES = 600;
 
 final int MAX_LEVELS = 5;
-int scoreForThisLevel = 0;
+int scoreForThisLevel;
 int[] scoreReqForNextLevel = new int[]{  SCORE_4_LINES * 2,
                                          SCORE_4_LINES * 4,
                                          SCORE_4_LINES * 6,
@@ -52,22 +48,21 @@ Ticker clearLineTicker;
 
 boolean clearingLines = false;
 
-int[] shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
+int[] shapeStats;
 
 Shape currentShape;
 int currShapeCol;
 int currShapeRow;
 
-Queue nextPieceQueue = new Queue();
+Queue nextPieceQueue;
 
 PImage backgroundImg;
-boolean upKeyState = false;
 
 //
 int ghostShapeCol;
 int ghostShapeRow;
 
-boolean hasLostGame = false;
+boolean hasLostGame;
 boolean didDrawGameOver = false;
 
 
@@ -81,13 +76,14 @@ float rightBuffer = 0f;
 float blocksPerSecond = 10.0f;
 
 // Add 2 for left and right borders and 1 for floor
-final int NUM_COLS = 10;  // 10 cols + 2 for border
+final int NUM_COLS = 12;  // 10 cols + 2 for border
 final int NUM_ROWS = 25;  // 25 rows + 1 floor + 4 extra
 final int CUT_OFF_INDEX = 3;
 
 // Don't include the floor
 final int LAST_ROW_INDEX = NUM_ROWS - 2;
 
+// TODO: refactor to BLOCK_SIZE
 int BOX_SIZE = 16;
 
 final int BOARD_W_IN_PX = NUM_COLS * BOX_SIZE;
@@ -103,6 +99,7 @@ Ticker dropTicker;
 Ticker leftMoveTicker;
 Ticker rightMoveTicker;
 
+SoundManager soundManager;
 
 // --- FEATURES ---
 // kickback - If true, players can rotate pieces even if flush against wall.
@@ -118,58 +115,45 @@ SpriteFont nullTerminatorFont;
 /*
  */
 public void setup(){
-  size(BOARD_W_IN_PX + 200, BOARD_H_IN_PX);
+  size(337, 464);
   
-
-
-images[0] = loadImage("data/images/red.png");
-images[RED] = loadImage("data/images/red.png");
-images[ORANGE] = loadImage("data/images/orange.png");
-images[BLUE] = loadImage("data/images/blue.png");
-images[PINK] = loadImage("data/images/pink.png");
-images[GREEN] = loadImage("data/images/green.png");
-images[PURPLE] = loadImage("data/images/purple.png");
-images[BABYBLUE] = loadImage("data/images/babyblue.png");
-images[WHITE] = loadImage("data/images/babyblue.png");
+  // TODO: fix this
+  //images[0] = loadImage("data/images/red.png");
+  images[RED] = loadImage("data/images/red.png");
+  images[ORANGE] = loadImage("data/images/orange.png");
+  images[BLUE] = loadImage("data/images/blue.png");
+  images[PINK] = loadImage("data/images/pink.png");
+  images[GREEN] = loadImage("data/images/green.png");
+  images[PURPLE] = loadImage("data/images/purple.png");
+  images[BABYBLUE] = loadImage("data/images/babyblue.png");
+  images[WHITE] = loadImage("data/images/babyblue.png");
+  
+  backgroundImg = loadImage("data/images/bk.png");
+  nullTerminatorFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
   
   debug = new Debugger();
   soundManager = new SoundManager(this);
   soundManager.init();
   soundManager.setMute(true);
   
- // backgroundImg = loadImage("data/images/background.jpg");
-  
-  nullTerminatorFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
-
-
+  // Timers
   clearLineTicker = new Ticker();
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
+
+  restartGame();
   
-  //
-  for(int i = 0; i < 3; i++){
-    nextPieceQueue.pushBack(getRandomPiece());
-  }
-
-
   // P = pause
   // G = ghost
   // F = fade
   // K = kickback
+  // M = mute
   Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K, KEY_M});
   
-  // Assume the user wants kickback
+  // Assume the user wants kickback and muted
   Keyboard.setKeyDown(KEY_K, true);
-  
-  // assume muted?
   Keyboard.setKeyDown(KEY_M, true);
-  
-  clearGrid();
-  
-  createPiece();
-   
-  createBorders();
 }
 
 /*
@@ -259,12 +243,13 @@ public void findGhostPiecePosition(){
   }
 }
 
-
+/*
+ */
 public void drawBackground(){
   pushStyle();
   noFill();
   strokeWeight(1);
-  stroke(255, 32);
+  stroke(255, 16);
   
   // Draw a translucent grid
   for(int cols = 0; cols < NUM_COLS; cols++){
@@ -315,7 +300,9 @@ public boolean checkShapeCollision(Shape shape, int shapeCol, int shapeRow){
 
 
 /**
-*/
+ * Try to move a shape left or right. Use -ve values to move it left
+ * and +ve values to move it right.
+ */
 public void moveSideways(int amt){
   currShapeCol += amt;
   
@@ -473,6 +460,14 @@ public void addPieceToBoard(Shape shape){
     default: break;
   }
   
+  
+  // play score sound
+  //
+  
+  // increse score
+  //
+  
+  
   //
   if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
     scoreForThisLevel = 0;
@@ -588,7 +583,9 @@ public int getRandomInt(int minVal, int maxVal) {
  */
 public void draw(){
   
-
+  if(hasLostGame && Keyboard.isKeyDown(KEY_R)){
+    restartGame();
+  }
   
   if(didDrawGameOver){
     return;
@@ -604,6 +601,10 @@ public void draw(){
     return;
   }
   
+  
+  
+  update();
+  
   if(clearingLines){
     clearLineTicker.tick();
     if(clearLineTicker.getTotalTime() < 0.5f){
@@ -615,7 +616,6 @@ public void draw(){
     }
   }
     
-  update();
   
   if(allowFadeEffect){
     pushStyle();
@@ -628,28 +628,35 @@ public void draw(){
     background(0);
   }
   
-  translate(0, BOX_SIZE * 4);
+  
+  
   
   // Draw cutoff
-  pushMatrix();
+  /*pushMatrix();
   translate(0, BOX_SIZE * 3);
   pushStyle();
   fill(45, 0, 0, 200);
-  rect(0, 0, BOX_SIZE* NUM_COLS, BOX_SIZE);
+  rect(0, 0, BOX_SIZE * NUM_COLS, BOX_SIZE);
   popStyle();
-  popMatrix();
+  popMatrix();*/
   
+  pushMatrix();
+  translate(10, BOX_SIZE * 4 -4);
   drawBoard();
+  
+  
   
   findGhostPiecePosition();
   drawGhostPiece();
 
-  //drawCurrShape();
   drawShape(currentShape, currShapeCol, currShapeRow);
   
   //drawBackground();
+    popMatrix();
     
-  drawBorders();
+    
+  image(backgroundImg, 0, 0);
+  //drawBorders();
   
   pushMatrix();
   translate(-100, 200);
@@ -665,15 +672,41 @@ public void draw(){
   popStyle();
   popMatrix();
   
-  drawText(nullTerminatorFont, "LEVEL " + str(level), 200, 20);
-  drawText(nullTerminatorFont, "SCORE " + str(score), 200, 40);
+  drawText(nullTerminatorFont, "LEVEL " + str(level+1), 150, 20);
+  drawText(nullTerminatorFont, "SCORE " + str(score), 150, 40);
     
   debug.clear();
 }
 
+// Encapsulate
 public int charCodeAt(char ch){
-
   return ch;
+}
+
+/**
+ */
+public void restartGame(){
+  
+  // We 'add' 1 to this before we render
+  level = 0;
+  scoreForThisLevel = 0;
+  score = 0;
+  hasLostGame = false;
+  didDrawGameOver = false;
+  
+  shapeStats = new int[]{0, 0, 0, 0, 0, 0, 0};
+  
+  clearGrid();
+  createBorders();
+
+  // It would be strange if the next pieces always stuck
+  // around from end of one game to the start of the next.
+  nextPieceQueue = new Queue();
+  for(int i = 0; i < 3; i++){
+    nextPieceQueue.pushBack(getRandomPiece());
+  }
+  
+  createPiece();
 }
 
 /**
@@ -711,19 +744,6 @@ public void drawGhostPiece(){
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
   //popStyle();
 }
-
-/*
- */
-/*public color getColorFromID(int col){
-  if(col == RED)    { return color(#FF0000); }
-  if(col == ORANGE) { return color(#FFA500); }
-  if(col == MAGENTA){ return color(#FF00FF); }
-  if(col == BLUE)   { return color(#0000FF); }
-  if(col == GREEN)  { return color(#00FF00); }
-  if(col == OLIVE)  { return color(#808000); }
-  if(col == CYAN)   { return color(#00FFFF); }
-  else              { return color(#FFFFFF); }
-}*/
 
 public PImage getImageFromID(int col){
   return images[col];
@@ -852,15 +872,12 @@ public void drawBox(int col, int row, int _color){
  */
 public void showGamePaused(){
   pushStyle();
-  fill(128, 0, 0, 1);
+  fill(128, 0, 0);
   noStroke();
   rect(0, BOX_SIZE * 3, width - 200, height);
-  PFont font = createFont("verdana", 50);
-  textFont(font);
-  textAlign(CENTER, CENTER);
-  fill(0, 0, 128);
-  text("Game Paused", width/2, height/2);
   popStyle();
+  
+  drawText(nullTerminatorFont, "PAUSED", width/2 - (5 * 16)/2, 30);
 }
 
 /*
@@ -872,12 +889,10 @@ public void showGameOver(){
   fill(128, 128);
   noStroke();
   rect(0, 0, width, height);
-  PFont font = createFont("verdana", 50);
-  textFont(font);
-  textAlign(CENTER, CENTER);
-  fill(128, 0, 0);
-  text("Game Over", width/2, height/2);
   popStyle();
+  
+  drawText(nullTerminatorFont, "GAME OVER", width/2 - (9 * 16)/2, 50);
+  
   didDrawGameOver = true;
 }
 /*
@@ -1047,6 +1062,10 @@ public class Queue<T>{
   
   public T peekFront(){
     return items.get(0);
+  }
+  
+  public void clear(){
+    items.clear();
   }
 }
 /**

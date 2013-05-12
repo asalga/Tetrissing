@@ -810,8 +810,17 @@ public void requestRotatePiece(){
 /*
  */
 public void keyPressed(){
+  // This seems to be the proper way to prevent P5 from closing on ESC
+  if(key == KEY_ESC){
+    key = 0;
+  }
+  
+  if(hasLostGame && keyCode != KEY_R){
+    return;
+  }
+  
   // if paused, the user is trying to unpause
-  if(isPaused && key == KEY_ESC){
+  if(isPaused && keyCode == KEY_ESC){
     isPaused = false;
   }
   
@@ -829,23 +838,15 @@ public void keyPressed(){
   }
   
   Keyboard.setKeyDown(keyCode, true);
-  
-  // This seems to be the proper way to prevent P5 from closing on ESC
-  if(key == KEY_ESC){
-    key = 0;
-  }
 }
 
 public void keyReleased(){
-  
-
-  
-  Keyboard.setKeyDown(keyCode, false);
-  
   // This seems to be the proper way to prevent P5 from closing on ESC
   if(key == KEY_ESC){
     key = 0;
   }
+  
+  Keyboard.setKeyDown(keyCode, false);
 }
 
 /**

@@ -656,7 +656,7 @@ public void draw(){
   translate( BOARD_START_X, BOARD_START_Y);
   drawBoard();
   
-  findGhostPiecePosition();
+
   drawGhostPiece();
 
   drawShape(currentShape, currShapeCol, currShapeRow);  
@@ -664,10 +664,7 @@ public void draw(){
   
   image(backgroundImg, 0, 0);
   
-  pushMatrix();
-  translate(-100, 200);
   drawNextShape();
-  popMatrix();
     
   // Draw debugging stuff on top of everything else
   /*pushMatrix();
@@ -736,8 +733,11 @@ public void drawText(SpriteFont font, String text, int x, int y){
 /**
  */
 public void drawNextShape(){
+  pushMatrix();
+  translate(-100, 200);
   Shape nextShape = (Shape)nextPieceQueue.peekFront();
   drawShape(nextShape, 20, 0);
+  popMatrix();
 }
 
 /* A ghost piece shows where the piece the user
@@ -748,6 +748,8 @@ public void drawGhostPiece(){
     return;
   }
   
+  findGhostPiecePosition();
+    
   pushStyle();
   tint(255, 64);
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
@@ -873,23 +875,38 @@ public void drawBox(int col, int row, int _color){
 /*
  */
 public void showGamePaused(){
+  background(0);
+  
+  pushMatrix();
+  translate(BOARD_START_X, BOARD_START_Y);
+  drawBoard();
+  drawShape(currentShape, currShapeCol, currShapeRow);
+  drawGhostPiece(); 
+  popMatrix();
+  
+  // Draw this after the current piece because if the piece just started
+  // at the top, the top part of the piece needs to be clipped by the 'window'
+  image(backgroundImg, 0, 0);
+  
+  drawNextShape();
+  
   pushMatrix();
   translate(23, 108);
   noStroke();
-  fill(200, 0, 0, 1);
-  rect(0, 0, (NUM_COLS-2) * BLOCK_SIZE + 4, (NUM_ROWS-4) * BLOCK_SIZE);
+  fill(0, 200);
+  rect(0, 0, (NUM_COLS - 2) * BLOCK_SIZE + 4, (NUM_ROWS - 4) * BLOCK_SIZE);
   popMatrix();
-    
+  
   drawText(largeFont, "PAUSED", 60, 200);
   drawText(smallFont, "Hit Esc to resume", 30, 230);
   
-  drawInstructions();  
-  
   drawScoreAndLevel();
+  drawInstructions();
 }
 
 /**
- * 
+ * Displayed when game is paused
+ * TODO: display on game start
  */
 public void drawInstructions(){
   int yPos = 330;
@@ -917,17 +934,17 @@ public void drawInstructions(){
  */
 public void showGameOver(){
   pushStyle();
-  fill(128, 0,0,128);
+  fill(0, 0, 0, 128);
   noStroke();
   rect(0, 0, width, height);
   popStyle();
   
   image(backgroundImg, 0, 0);
-  drawText(largeFont, "GAME OVER", 30, 250);
+  drawText(largeFont, "GAME OVER", 30, 200);
   
   drawScoreAndLevel();
   
-  drawText(smallFont, "Hit R to restart", 30, 300);
+  drawText(smallFont, "Hit R to restart", 30, 230);
   
   didDrawGameOver = true;
 }

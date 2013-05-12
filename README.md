@@ -16,7 +16,6 @@ Then go to http://localhost:8000
 
 Known Issues:
  - Fix covering play area with red on pause and game over in Pjs
- - Small text is not being displayed in Pjs version
  - Add animation on line clear
  - Fix drawing drop streak
  - Fix audio for Firefox
@@ -24,6 +23,8 @@ Known Issues:
  - Fix spinning piece
  - make height of tetris 'window' smaller
  - Prevent pause after game over
+ - Drawing ghost piece opacity wrong if fade effect is on
+ - Add start screen
 
 Future stuff:
  - Add chain reaction feature

@@ -15,6 +15,8 @@ To Build:
 Then go to http://localhost:8080 
 
 Known Issues:
+ - Fix covering play area with red on pause and game over in Pjs
+ - Small text is not being displayed in Pjs version
  - Add animation on line clear
  - Fix drawing drop streak
  - Fix audio for Firefox

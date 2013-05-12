@@ -68,6 +68,10 @@ function SoundManager(){
 
   this.playClearTetrisSound = function(){
   };
+
+  this.playSoundByLinesCleared = function(numLines){
+    this.playSound(LINES);
+  };
 }
 
 

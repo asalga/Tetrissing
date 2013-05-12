@@ -21,7 +21,7 @@ public static class Keyboard{
    * The specified keys will stay down even after user releases the key.
    * Once they press that key again, only then will the key state be changed to up(false).
    */
-  public static  void lockKeys(int[] keys){
+  public static void lockKeys(int[] keys){
     for(int k : keys){
       if( k > -1 && k < NUM_KEYS){
         lockableKeys[k] = true;
@@ -44,31 +44,29 @@ public static class Keyboard{
    * Set the state of a key to either down (true) or up (false)
    */
   public static void setKeyDown(int key, boolean state){
-    
     if(key <= -1 || key >= NUM_KEYS){
       return;
     }
     
     // If the key is lockable, as soon as we tell the class the key is down, we lock it.
     if( lockableKeys[key] ){
-    
-        // 0 - key is up.
-        // 1 - key is down
-        if( state == true ){
-          lockedKeyPresses[key]++; // 1, 
+        // First time pressed
+        if(state == true && lockedKeyPresses[key] == 0){
+          lockedKeyPresses[key]++;
           keys[key] = true;
         }
-        // We tell the key that we released
-        else{
-          // But is this the second release or the first?
-          if(lockedKeyPresses[key] == 1){
-            // first release, do nothing
-          }
-          // On the second release, let go of the key.
-          else if(lockedKeyPresses[key] == 2){
-            lockedKeyPresses[key] = 0;
-            keys[key] = false;
-          }
+        // First time released
+        else if(state == false && lockedKeyPresses[key] == 1){
+          lockedKeyPresses[key]++;
+        }
+        // Second time pressed
+        else if(state == true && lockedKeyPresses[key] == 2){
+           lockedKeyPresses[key]++;
+        }
+        // Second time released
+        else if (state == false && lockedKeyPresses[key] == 3){
+          lockedKeyPresses[key] = 0;
+          keys[key] = false;
         }
     }
     else{
@@ -84,9 +82,16 @@ public static class Keyboard{
   }
 }
 
+final int KEY_ENTER = 10;
+
+
+final int KEY_ESC = 27;
+
 // These are outside of keyboard simply because I don't want to keep
 // typing Keyboard.KEY_*
 final int KEY_SPACE  = 32;
+
+// Arrow keys
 final int KEY_LEFT   = 37;
 final int KEY_UP     = 38;
 final int KEY_RIGHT  = 39;
@@ -129,7 +134,7 @@ final int KEY_W = 87;
 final int KEY_X = 88;
 final int KEY_Y = 89;
 final int KEY_Z = 90;
-
+/*
 // Lowercase
 final int KEY_a = 97;
 final int KEY_b = 98;
@@ -156,4 +161,4 @@ final int KEY_v = 118;
 final int KEY_w = 119;
 final int KEY_x = 120;
 final int KEY_y = 121;
-final int KEY_z = 122;
+final int KEY_z = 122;*/

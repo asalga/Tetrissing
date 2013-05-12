@@ -810,7 +810,7 @@ public void requestRotatePiece(){
 /*
  */
 public void keyPressed(){
-  // if paused the user is trying to unpause
+  // if paused, the user is trying to unpause
   if(isPaused && key == KEY_ESC){
     isPaused = false;
   }
@@ -818,6 +818,10 @@ public void keyPressed(){
   // If we are in a paused state, ignore any keypresses
   if(isPaused){
     return;
+  }
+  
+  if(keyCode == KEY_SPACE){
+    dropPiece();
   }
   
   if(keyCode == KEY_UP){
@@ -834,9 +838,7 @@ public void keyPressed(){
 
 public void keyReleased(){
   
-  if(keyCode == KEY_SPACE){
-    dropPiece();
-  }
+
   
   Keyboard.setKeyDown(keyCode, false);
   

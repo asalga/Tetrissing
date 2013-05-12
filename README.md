@@ -15,14 +15,12 @@ To Build:
 Then go to http://localhost:8080 
 
 Known Issues:
- - Make good UI
- - User can slide piece along floor
+ - part of ghost block isn't drawn (bug in tint() in Processing.js)
  - Add animation on line clear
  - Fix dropping piece while pause
  - Fix drawing drop streak
  - Fix audio for Firefox
  - Make Utils.js a static class
- - Fix clipping ghost piece 
  - Fix spinning piece
  - make height of tetris 'window' smaller
  - Prevent pause after game over

@@ -16,7 +16,6 @@ Then go to http://localhost:8080
 
 Known Issues:
  - Add animation on line clear
- - Fix dropping piece while pause
  - Fix drawing drop streak
  - Fix audio for Firefox
  - Make Utils.js a static class

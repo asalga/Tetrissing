@@ -879,21 +879,36 @@ public void showGamePaused(){
   fill(200, 0, 0, 1);
   rect(0, 0, (NUM_COLS-2) * BLOCK_SIZE + 4, (NUM_ROWS-4) * BLOCK_SIZE);
   popMatrix();
+    
+  drawText(largeFont, "PAUSED", 60, 200);
+  drawText(smallFont, "Hit Esc to resume", 30, 230);
   
-  
-  //noFill();
-  //pushStyle();
- // fill(128, 0, 0, 1);
-  //n/oStroke();
-//  rect(0, 0, width, height);
-  //popStyle();
-  
- // image(backgroundImg, 0, 0);
-  
-  drawText(largeFont, "PAUSED", 60, 250);
-  drawText(smallFont, "Hit Esc to unpause", 30, 300);
+  drawInstructions();  
   
   drawScoreAndLevel();
+}
+
+/**
+ * 
+ */
+public void drawInstructions(){
+  int yPos = 330;
+  int buffer = 10;
+  
+  String[] instructions = {
+    "Toggle features",
+    "---------------",
+    "G - Ghost piece",
+    "F - Fade effect",
+    "M - Mute Audio",
+    "K - Set Kickback",
+    "Esc - Pause"
+  };
+  
+  for(int i = 0; i < instructions.length; i++){
+    drawText(smallFont, instructions[i], 25, yPos);
+    yPos += buffer;
+  }
 }
 
 /*

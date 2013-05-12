@@ -160,6 +160,11 @@ public void drawShape(Shape shape, int colPos, int rowPos){
   int shapeSize = shape.getSize();
   PImage blockImage = getImageFromID(shape.getColor());
   
+  // This is a workaround for a bug in Processing.js. When calling this method with tint(),
+  // the first block rendered will never be displayed. So force that first unrendered block
+  // to be rendered outside the drawing area to allow all subsequent blocks to be properly rendered.
+  image(blockImage, -100, -100);
+  
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
@@ -643,12 +648,8 @@ public void draw(){
 
   drawShape(currentShape, currShapeCol, currShapeRow);
   
-  //drawBackground();
   popMatrix();
-    
-    
   image(backgroundImg, 0, 0);
-  //drawBorders();
   
   pushMatrix();
   translate(-100, 200);

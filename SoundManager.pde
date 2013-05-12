@@ -34,6 +34,16 @@ public class SoundManager{
     clearLine.rewind();
   }
   
+  /* Should we have 4 different sounds for the number of lines cleared?
+   */
+  public void playSoundByLinesCleared(int linesCleared){
+    if(muted){
+      return;
+    }
+    
+    playClearLinesSound();
+  }
+  
   public void playClearTetrisSound(){
     if(muted){
       return;

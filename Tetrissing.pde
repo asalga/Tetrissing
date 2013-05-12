@@ -891,7 +891,7 @@ public void showGamePaused(){
  // image(backgroundImg, 0, 0);
   
   drawText(largeFont, "PAUSED", 60, 250);
-  drawText(smallFont, "Hit P to unpause", 30, 300);
+  drawText(smallFont, "Hit Esc to unpause", 30, 300);
   
   drawScoreAndLevel();
 }

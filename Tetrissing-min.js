@@ -158,13 +158,19 @@ public void setup(){
 public void drawShape(Shape shape, int colPos, int rowPos){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
-    
+  PImage blockImage = getImageFromID(shape.getColor());
+  
+  // This is a workaround for a bug in Processing.js. When calling this method with tint(),
+  // the first block rendered will never be displayed. So force that first unrendered block
+  // to be rendered outside the drawing area to allow all subsequent blocks to be properly rendered.
+  image(blockImage, -100, -100);
+  
   for(int c = 0; c < shapeSize; c++){
     for(int r = 0; r < shapeSize; r++){
       
       // Transposing here!
       if(arr[r][c] != 0){
-        image(getImageFromID(shape.getColor()), (c * BLOCK_SIZE) + (colPos * BLOCK_SIZE), (r * BLOCK_SIZE) + (rowPos * BLOCK_SIZE));
+        image(blockImage, (c * BLOCK_SIZE) + (colPos * BLOCK_SIZE), (r * BLOCK_SIZE) + (rowPos * BLOCK_SIZE));
       }
     }
   }
@@ -639,14 +645,11 @@ public void draw(){
   findGhostPiecePosition();
   drawGhostPiece();
 
+
   drawShape(currentShape, currShapeCol, currShapeRow);
   
-  //drawBackground();
   popMatrix();
-    
-    
   image(backgroundImg, 0, 0);
-  //drawBorders();
   
   pushMatrix();
   translate(-100, 200);
@@ -733,7 +736,7 @@ public void drawGhostPiece(){
   }
   
   pushStyle();
-  tint(255, 32);
+  tint(255, 64);
   drawShape(currentShape, ghostShapeCol, ghostShapeRow);
   popStyle();
 }

@@ -6,13 +6,13 @@ Tetris clone in Processing
 Keys:
  - Arrow keys to transform piece
  - G,F,K,M - toggle some features
- - P for pause
+ - Esc for pause
  - Space to immediately drop piece
 
 To Build:  
  $ make  
  $ python -m SimpleHTTPServer  
-Then go to http://localhost:8080 
+Then go to http://localhost:8000 
 
 Known Issues:
  - Fix covering play area with red on pause and game over in Pjs

@@ -13,6 +13,7 @@ final int O_SHAPE = 4;
 final int Z_SHAPE = 5;
 final int S_SHAPE = 6;
 
+final int BORDER   = -1;
 final int EMPTY    = 0;
 final int RED      = 1;
 final int ORANGE   = 2;
@@ -21,7 +22,7 @@ final int BLUE     = 4;
 final int GREEN    = 5;
 final int PURPLE   = 6;
 final int BABYBLUE = 7;
-final int WHITE    = 8;
+
 
 // TODO: fix this
 PImage[] images = new PImage[9];
@@ -44,7 +45,7 @@ int[] scoreReqForNextLevel = new int[]{  SCORE_4_LINES * 2,
 
 Ticker clearLineTicker;
 
-
+boolean isPaused = false;
 
 boolean clearingLines = false;
 
@@ -85,6 +86,11 @@ final int LAST_ROW_INDEX = NUM_ROWS - 2;
 
 final int BLOCK_SIZE = 16;
 
+// Where the Tetris board starts. Keep in mind we don't show the borders
+// or the extra rows at the top.
+final int BOARD_START_X = 10;
+final int BOARD_START_Y = (BLOCK_SIZE  * 4) - 4;
+
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
 float sideSpeed = 3f;
@@ -111,8 +117,6 @@ SpriteFont smallFont;
 public void setup(){
   size(284, 464);
   
-  // TODO: fix this
-  //images[0] = loadImage("data/images/red.png");
   images[RED] = loadImage("data/images/red.png");
   images[ORANGE] = loadImage("data/images/orange.png");
   images[BLUE] = loadImage("data/images/blue.png");
@@ -120,7 +124,6 @@ public void setup(){
   images[GREEN] = loadImage("data/images/green.png");
   images[PURPLE] = loadImage("data/images/purple.png");
   images[BABYBLUE] = loadImage("data/images/babyblue.png");
-  images[WHITE] = loadImage("data/images/babyblue.png");
   
   backgroundImg = loadImage("data/images/bk.png");
   
@@ -146,7 +149,7 @@ public void setup(){
   // F = fade
   // K = kickback
   // M = mute
-  Keyboard.lockKeys(new int[]{KEY_P, KEY_G, KEY_F, KEY_K, KEY_M});
+  Keyboard.lockKeys(new int[]{KEY_G, KEY_F, KEY_K, KEY_M, KEY_ESC});
   
   // Assume the user wants kickback and muted
   Keyboard.setKeyDown(KEY_K, true);
@@ -192,6 +195,9 @@ public Shape getRandomPiece(){
   else                   return new SShape();
 }
 
+/*
+ * TODO: properly center piece
+ */
 public void createPiece(){
   currentShape = (Shape)nextPieceQueue.popFront(); 
   
@@ -212,18 +218,20 @@ public void clearGrid(){
 }
 
 /*
+ * Adding extra columns and a floor directly in the grid
+ * allows for easier checking against going out of playing area.
  */
 public void createBorders(){
   for(int col = 0; col < NUM_COLS; col++){
-    grid[col][NUM_ROWS - 1] = WHITE;
+    grid[col][NUM_ROWS - 1] = BORDER;
   }
   
   for(int row = 0; row < NUM_ROWS; row++){
-    grid[0][row] = WHITE;
+    grid[0][row] = BORDER;
   }
 
   for(int row = 0; row < NUM_ROWS; row++){
-    grid[NUM_COLS-1][row] = WHITE;
+    grid[NUM_COLS-1][row] = BORDER;
   }
 }
 
@@ -431,8 +439,8 @@ public String getOnStr(boolean b){
 }
 
 /*
-* 
-*/
+ * 
+ */
 public void addPieceToBoard(Shape shape){
   int[][] arr = shape.getArr();
   int shapeSize = shape.getSize();
@@ -454,19 +462,23 @@ public void addPieceToBoard(Shape shape){
   }
   
   int numLinesToClear = getNumLinesToClear();
+  
+  if(numLinesToClear > 0){
+    soundManager.playSoundByLinesCleared(numLinesToClear);
     
-  // play score sound
-  //playSoundByLinesCleared(numLinesToClear);
-  
-  increaseScoreByLinesCleared(numLinesToClear);
-  
-  //
-  if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
-    scoreForThisLevel = 0;
-    level++;
+    increaseScoreByLinesCleared(numLinesToClear);
+    
+    //
+    if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
+      scoreForThisLevel = 0;
+      level++;
+    }
+    
+    removeFilledLines();
   }
-  
-  removeFilledLines();
+  else{
+    soundManager.playDropPieceSound();
+  }
   
   createPiece();
 }
@@ -600,7 +612,9 @@ public void draw(){
     return;
   }
   
-  if(Keyboard.isKeyDown(KEY_P) ){
+  isPaused = Keyboard.isKeyDown(KEY_ESC);
+  
+  if(isPaused){
     showGamePaused();
     return;
   }
@@ -639,16 +653,15 @@ public void draw(){
   popMatrix();*/
   
   pushMatrix();
-  translate(10, (BLOCK_SIZE * 4) - 4);
+  translate( BOARD_START_X, BOARD_START_Y);
   drawBoard();
   
   findGhostPiecePosition();
   drawGhostPiece();
 
-
-  drawShape(currentShape, currShapeCol, currShapeRow);
-  
+  drawShape(currentShape, currShapeCol, currShapeRow);  
   popMatrix();
+  
   image(backgroundImg, 0, 0);
   
   pushMatrix();
@@ -657,13 +670,13 @@ public void draw(){
   popMatrix();
     
   // Draw debugging stuff on top of everything else
-  pushMatrix();
+  /*pushMatrix();
   translate(200, 40);
   pushStyle();
   stroke(255);
   debug.draw();
   popStyle();
-  popMatrix();
+  popMatrix();*/
 
   drawScoreAndLevel();
       
@@ -765,13 +778,6 @@ public void requestRotatePiece(){
   int amountToShiftLeft = pos + size - emptyRightSpaces - (NUM_COLS-1);
   int amountToShiftRight = 1 - (pos - emptyLeftSpaces);
   
-  if(DEBUG){
-    println("pos: " + pos);
-    println("amountToShiftLeft: " + amountToShiftLeft);
-    println("amountToShiftRight: " + amountToShiftRight);
-    println("emptyLeftSpaces: " + emptyLeftSpaces);
-  }
-  
   // If we are allowing the user to rotate the piece, even
   // if the piece is flush against the wall. 
   if(allowKickBack){
@@ -804,6 +810,28 @@ public void requestRotatePiece(){
 /*
  */
 public void keyPressed(){
+  // This seems to be the proper way to prevent P5 from closing on ESC
+  if(key == KEY_ESC){
+    key = 0;
+  }
+  
+  if(hasLostGame && keyCode != KEY_R){
+    return;
+  }
+  
+  // if paused, the user is trying to unpause
+  if(isPaused && keyCode == KEY_ESC){
+    isPaused = false;
+  }
+  
+  // If we are in a paused state, ignore any keypresses
+  if(isPaused){
+    return;
+  }
+  
+  if(keyCode == KEY_SPACE){
+    dropPiece();
+  }
   
   if(keyCode == KEY_UP){
     requestRotatePiece();
@@ -813,9 +841,9 @@ public void keyPressed(){
 }
 
 public void keyReleased(){
- 
-  if(keyCode == KEY_SPACE){
-    dropPiece();
+  // This seems to be the proper way to prevent P5 from closing on ESC
+  if(key == KEY_ESC){
+    key = 0;
   }
   
   Keyboard.setKeyDown(keyCode, false);
@@ -845,13 +873,22 @@ public void drawBox(int col, int row, int _color){
 /*
  */
 public void showGamePaused(){
-  pushStyle();
-  fill(128, 0, 0, 1);
+  pushMatrix();
+  translate(23, 108);
   noStroke();
-  rect(0, 0, width, height);
-  popStyle();
+  fill(200, 0, 0, 1);
+  rect(0, 0, (NUM_COLS-2) * BLOCK_SIZE + 4, (NUM_ROWS-4) * BLOCK_SIZE);
+  popMatrix();
   
-  image(backgroundImg, 0, 0);
+  
+  //noFill();
+  //pushStyle();
+ // fill(128, 0, 0, 1);
+  //n/oStroke();
+//  rect(0, 0, width, height);
+  //popStyle();
+  
+ // image(backgroundImg, 0, 0);
   
   drawText(largeFont, "PAUSED", 60, 250);
   drawText(smallFont, "Hit P to unpause", 30, 300);
@@ -1221,7 +1258,7 @@ public static class Keyboard{
    * The specified keys will stay down even after user releases the key.
    * Once they press that key again, only then will the key state be changed to up(false).
    */
-  public static  void lockKeys(int[] keys){
+  public static void lockKeys(int[] keys){
     for(int k : keys){
       if( k > -1 && k < NUM_KEYS){
         lockableKeys[k] = true;
@@ -1244,31 +1281,29 @@ public static class Keyboard{
    * Set the state of a key to either down (true) or up (false)
    */
   public static void setKeyDown(int key, boolean state){
-    
     if(key <= -1 || key >= NUM_KEYS){
       return;
     }
     
     // If the key is lockable, as soon as we tell the class the key is down, we lock it.
     if( lockableKeys[key] ){
-    
-        // 0 - key is up.
-        // 1 - key is down
-        if( state == true ){
-          lockedKeyPresses[key]++; // 1, 
+        // First time pressed
+        if(state == true && lockedKeyPresses[key] == 0){
+          lockedKeyPresses[key]++;
           keys[key] = true;
         }
-        // We tell the key that we released
-        else{
-          // But is this the second release or the first?
-          if(lockedKeyPresses[key] == 1){
-            // first release, do nothing
-          }
-          // On the second release, let go of the key.
-          else if(lockedKeyPresses[key] == 2){
-            lockedKeyPresses[key] = 0;
-            keys[key] = false;
-          }
+        // First time released
+        else if(state == false && lockedKeyPresses[key] == 1){
+          lockedKeyPresses[key]++;
+        }
+        // Second time pressed
+        else if(state == true && lockedKeyPresses[key] == 2){
+           lockedKeyPresses[key]++;
+        }
+        // Second time released
+        else if (state == false && lockedKeyPresses[key] == 3){
+          lockedKeyPresses[key] = 0;
+          keys[key] = false;
         }
     }
     else{
@@ -1284,9 +1319,16 @@ public static class Keyboard{
   }
 }
 
+final int KEY_ENTER = 10;
+
+
+final int KEY_ESC = 27;
+
 // These are outside of keyboard simply because I don't want to keep
 // typing Keyboard.KEY_*
 final int KEY_SPACE  = 32;
+
+// Arrow keys
 final int KEY_LEFT   = 37;
 final int KEY_UP     = 38;
 final int KEY_RIGHT  = 39;
@@ -1329,7 +1371,7 @@ final int KEY_W = 87;
 final int KEY_X = 88;
 final int KEY_Y = 89;
 final int KEY_Z = 90;
-
+/*
 // Lowercase
 final int KEY_a = 97;
 final int KEY_b = 98;
@@ -1356,7 +1398,7 @@ final int KEY_v = 118;
 final int KEY_w = 119;
 final int KEY_x = 120;
 final int KEY_y = 121;
-final int KEY_z = 122;
+final int KEY_z = 122;*/
 public class OShape extends Shape{
  
   OShape(){

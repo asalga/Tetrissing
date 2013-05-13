@@ -76,7 +76,7 @@ public class SpriteFont{
   //public static void create(String imageFilename, int charWidth, int charHeight, int borderSize){ 
   //PImage fontSheet = loadImage(imageFilename);
   public PImage getChar(char ch){
-    int asciiCode = charCodeAt(ch);
+    int asciiCode = Utils.charCodeAt(ch);
     return chars[asciiCode-32];
   }
   

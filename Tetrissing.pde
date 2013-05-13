@@ -182,7 +182,7 @@ public void drawShape(Shape shape, int colPos, int rowPos){
 /*
  */
 public Shape getRandomPiece(){
-  int randInt = getRandomInt(0, 6);
+  int randInt = Utils.getRandomInt(0, 6);
   
   shapeStats[randInt]++;
   
@@ -425,17 +425,6 @@ public void update(){
   }
   
   findGhostPiecePosition();
-  
-  //debug.addString("----------------");
-  /*debug.addString("F - Toggle Fade effect " + getOnStr(Keyboard.isKeyDown(KEY_F)));
-  debug.addString("G - Toggle Ghost piece ");
-  debug.addString("K - Toggle Kick back " + getOnStr(Keyboard.isKeyDown(KEY_K)));
-  debug.addString("M - Mute " + getOnStr(Keyboard.isKeyDown(KEY_M)));
-  debug.addString("P - Pause game");*/
-}
-
-public String getOnStr(boolean b){
-  return b ? "(on)" : "(off)";
 }
 
 /*
@@ -514,6 +503,7 @@ public int getNumLinesToClear(){
     
     if(lineFull){
       numLinesToClear++;
+      // return early if we found 4?
     }
   }
   
@@ -589,12 +579,6 @@ public boolean addedBoxInCutoff(){
   return false;
 }
 
-/*
- */
-public int getRandomInt(int minVal, int maxVal) {
-  return (int)random(minVal, maxVal + 1);
-}
-
 /**
  */
 public void draw(){
@@ -656,7 +640,6 @@ public void draw(){
   translate( BOARD_START_X, BOARD_START_Y);
   drawBoard();
   
-
   drawGhostPiece();
 
   drawShape(currentShape, currShapeCol, currShapeRow);  
@@ -665,15 +648,6 @@ public void draw(){
   image(backgroundImg, 0, 0);
   
   drawNextShape();
-    
-  // Draw debugging stuff on top of everything else
-  /*pushMatrix();
-  translate(200, 40);
-  pushStyle();
-  stroke(255);
-  debug.draw();
-  popStyle();
-  popMatrix();*/
 
   drawScoreAndLevel();
       
@@ -685,11 +659,6 @@ public void draw(){
 public void drawScoreAndLevel(){
   drawText(largeFont, "LEVEL " + str(level+1), 50, 20);
   drawText(largeFont, "SCORE " + str(score), 50, 40);
-}
-
-// Encapsulate
-public int charCodeAt(char ch){
-  return ch;
 }
 
 /**

@@ -1,5 +1,5 @@
 /*
- @pjs preload="data/images/bk.png,data/fonts/null_terminator_2x.png,data/fonts/null_terminator.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
+ @pjs globalKeyEvents="true";preload="data/images/bk.png,data/fonts/null_terminator_2x.png,data/fonts/null_terminator.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
  */ 
 import ddf.minim.*;
 

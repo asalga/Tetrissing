@@ -17892,8 +17892,13 @@
 
     function handleKeydown(e) {
       var code = getKeyCode(e);
+      
       if (code === PConstants.DELETE) {
         simulateKeyTyped(code, new Char(127));
+        return;
+      }
+      else if (code === PConstants.ESC){
+        simulateKeyTyped(code, new Char(27));
         return;
       }
       if (codedKeys.indexOf(code) < 0) {

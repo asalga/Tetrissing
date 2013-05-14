@@ -58,7 +58,7 @@ public class ClearLineAnimator{
       translate(BOARD_START_X + BLOCK_SIZE, BOARD_START_Y);
       
       for(int i = 0; i < rowIndicesToClear.size(); i++){
-        rect(0, ((Integer)rowIndicesToClear.get(i)).intValue() * BLOCK_SIZE, (NUM_COLS-2) * BLOCK_SIZE, BLOCK_SIZE);
+        rect(0, ((Integer)rowIndicesToClear.get(i)) * BLOCK_SIZE, (NUM_COLS-2) * BLOCK_SIZE, BLOCK_SIZE);
       }
       
       popMatrix();

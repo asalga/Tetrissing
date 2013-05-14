@@ -14,5 +14,5 @@ To Build:
  $ python -m SimpleHTTPServer  
 Then go to http://localhost:8000 
 
-Also available at: [asalga.github.io/Tetrissing link](http://asalga.github.io/Tetrissing/)
+Also available at: [asalga.github.io/Tetrissing](http://asalga.github.io/Tetrissing/)
 

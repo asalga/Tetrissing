@@ -79,7 +79,7 @@ float blocksPerSecond = 10.0f;
 // Add 2 for left and right borders and 1 for floor
 final int NUM_COLS = 12;  // 10 cols + 2 for border
 final int NUM_ROWS = 25;  // 20 rows + 1 floor + 4 extra
-final int CUT_OFF_INDEX = 3;
+final int CUT_OFF_INDEX = 2;
 
 // This is referenced often, so calculate it here, but don't include the floor.
 final int LAST_ROW_INDEX = NUM_ROWS - 2;
@@ -150,9 +150,9 @@ public void setup(){
   // M = mute
   Keyboard.lockKeys(new int[]{KEY_G, KEY_F, KEY_K, KEY_M, KEY_ESC});
   
-  // Assume the user wants kickback and muted
+  // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
-  Keyboard.setKeyDown(KEY_M, true);
+  //Keyboard.setKeyDown(KEY_M, true);
 }
 
 /*
@@ -664,14 +664,7 @@ public void draw(){
     background(0);
   }
   
-  // Draw cutoff
-  /*pushMatrix();
-  translate(0, BOX_SIZE * 3);
-  pushStyle();
-  fill(45, 0, 0, 200);
-  rect(0, 0, BOX_SIZE * NUM_COLS, BOX_SIZE);
-  popStyle();
-  popMatrix();*/
+
   
   pushMatrix();
   translate( BOARD_START_X, BOARD_START_Y);
@@ -691,7 +684,7 @@ public void draw(){
   drawNextShape();
 
   drawScoreAndLevel();
-      
+
   debug.clear();
 }
 

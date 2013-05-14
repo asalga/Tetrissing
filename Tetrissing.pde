@@ -43,7 +43,7 @@ int[] scoreReqForNextLevel = new int[]{  SCORE_4_LINES * 2,
                                          SCORE_4_LINES * 8,
                                          SCORE_4_LINES * 10};
 
-Ticker clearLineTicker;
+ClearLineAnimator clearLineAnimator;
 
 boolean isPaused = false;
 
@@ -137,7 +137,6 @@ public void setup(){
   soundManager.init();
   
   // Timers
-  clearLineTicker = new Ticker();
   dropTicker = new Ticker();
   leftMoveTicker = new Ticker();
   rightMoveTicker = new Ticker();
@@ -338,6 +337,19 @@ public void update(){
     
   dropTicker.tick();
   
+  if(clearLineAnimator != null){
+    clearLineAnimator.update();
+    
+    if(clearLineAnimator.DoesAffectBoard() == false){
+      removeFilledLines();
+    }
+    
+    if(clearLineAnimator.isAlive() == false){
+      clearLineAnimator = null;
+       removeFilledLines();
+    }
+  }
+  
   if(dropTicker.getTotalTime() >= dropSpeed){
     dropTicker.reset();
     
@@ -450,20 +462,20 @@ public void addPieceToBoard(Shape shape){
     return;
   }
   
-  int numLinesToClear = getNumLinesToClear();
+  ArrayList rowIndicesToClear = getRowIndicesToClear(); 
   
-  if(numLinesToClear > 0){
-    soundManager.playSoundByLinesCleared(numLinesToClear);
+  if(rowIndicesToClear.size() > 0){
+    soundManager.playSoundByLinesCleared(rowIndicesToClear.size());
     
-    increaseScoreByLinesCleared(numLinesToClear);
+    increaseScoreByLinesCleared(rowIndicesToClear.size());
     
     //
     if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
       scoreForThisLevel = 0;
       level++;
     }
-    
-    removeFilledLines();
+    clearLineAnimator = new ClearLineAnimator();
+    clearLineAnimator.setRowIndicesToClear(rowIndicesToClear);
   }
   else{
     soundManager.playDropPieceSound();
@@ -485,9 +497,34 @@ public void increaseScoreByLinesCleared(int linesCleared){
 }
 
 /**
+ */
+public ArrayList getRowIndicesToClear(){
+  ArrayList indicesToClear = new ArrayList();
+  
+  // Don't include the floor and we technically
+  // don't need to include the cut off index.
+  for(int row = LAST_ROW_INDEX; row > CUT_OFF_INDEX; row--){
+    
+    boolean lineFull = true;
+    for(int col = 1; col < NUM_COLS - 1; col++){
+      if(grid[col][row] == EMPTY){
+        lineFull = false;
+      }
+    }
+    
+    if(lineFull){
+      indicesToClear.add(row);
+    }
+    
+  }
+  
+  return indicesToClear;
+}
+
+/**
  * returns a value from 0 - 4
  */
-public int getNumLinesToClear(){
+/*public int getNumLinesToClear(){
   int numLinesToClear = 0;
   
   // Don't include the floor and we technically
@@ -508,7 +545,7 @@ public int getNumLinesToClear(){
   }
   
   return numLinesToClear;
-}
+}*/
 
 /* Start from the bottom row. If we found a full line,
  * copy everythng from the row above that line to
@@ -646,6 +683,10 @@ public void draw(){
   popMatrix();
   
   image(backgroundImg, 0, 0);
+  
+  if(clearLineAnimator != null){
+    clearLineAnimator.draw();
+  }
   
   drawNextShape();
 

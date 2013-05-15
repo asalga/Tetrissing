@@ -19,4 +19,22 @@ public static class Utils{
   public static int charCodeAt(char ch){
     return ch;
   }
+  
+  /**
+   * Mostly used for adding zeros to number in string format, but general enough to be
+   * used for other purposes.
+   */
+  public static String prependStringWithString(String baseString, String prefix, int newStrLength){
+    if(newStrLength <= baseString.length()){
+      return baseString;
+    }
+    
+    int zerosToAdd = newStrLength - baseString.length();
+    
+    for(int i = 0; i < zerosToAdd; i++){
+      baseString = prefix + baseString;
+    }
+    
+    return baseString;
+  }
 }

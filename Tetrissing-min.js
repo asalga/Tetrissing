@@ -1,5 +1,5 @@
 /*
- @pjs globalKeyEvents="true";preload="data/images/bk.png,data/fonts/null_terminator_2x.png,data/fonts/null_terminator.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
+ @pjs globalKeyEvents="true";preload="data/images/score_display.png,data/images/level_display.png,data/images/score.png,data/images/level.png,data/images/bk.png,data/fonts/null_terminator_2x.png,data/fonts/null_terminator.png,data/images/red.png,data/images/blue.png,data/images/babyblue.png,data/images/green.png, data/images/orange.png, data/images/pink.png";
  */ 
 import ddf.minim.*;
 
@@ -23,6 +23,10 @@ final int GREEN    = 5;
 final int PURPLE   = 6;
 final int BABYBLUE = 7;
 
+PImage levelLabel;
+PImage levelDisplay;
+PImage scoreLabel;
+PImage scoreDisplay;
 
 // TODO: fix this
 PImage[] images = new PImage[9];
@@ -79,7 +83,7 @@ float blocksPerSecond = 10.0f;
 // Add 2 for left and right borders and 1 for floor
 final int NUM_COLS = 12;  // 10 cols + 2 for border
 final int NUM_ROWS = 25;  // 20 rows + 1 floor + 4 extra
-final int CUT_OFF_INDEX = 3;
+final int CUT_OFF_INDEX = 2;
 
 // This is referenced often, so calculate it here, but don't include the floor.
 final int LAST_ROW_INDEX = NUM_ROWS - 2;
@@ -112,6 +116,10 @@ boolean allowFadeEffect = false;
 SpriteFont largeFont;
 SpriteFont smallFont;
 
+TextBoxView levelTextBox;
+TextBoxView textBox;
+TextBoxView instructionsTextBox;
+
 /*
  */
 public void setup(){
@@ -127,10 +135,26 @@ public void setup(){
   
   backgroundImg = loadImage("data/images/bk.png");
   
+  levelTextBox = new TextBoxView();
+  levelTextBox.setFont("data/fonts/null_terminator_2x.png");
+  
+  textBox = new TextBoxView();
+  textBox.setFont("data/fonts/null_terminator_2x.png");
+  
+  //instructionsTextBox = new TextBoxView();
+  //instructionsTextBox.setFont("data/fonts/null_terminator.png");
+  //instructionsTextBox.setPosition();
+  
   // Large font used for level, score, "Game Over" and "Paused"
   // Small font is used for some instructions
   largeFont = new SpriteFont("data/fonts/null_terminator_2x.png", 14, 14, 2);
   smallFont = new SpriteFont("data/fonts/null_terminator.png", 7, 7, 1);
+  
+  levelLabel = loadImage("data/images/level.png");
+  levelDisplay = loadImage("data/images/level_display.png");
+  scoreLabel = loadImage("data/images/score.png");
+  scoreDisplay = loadImage("data/images/score_display.png");
+  
   
   debug = new Debugger();
   soundManager = new SoundManager(this);
@@ -150,9 +174,9 @@ public void setup(){
   // M = mute
   Keyboard.lockKeys(new int[]{KEY_G, KEY_F, KEY_K, KEY_M, KEY_ESC});
   
-  // Assume the user wants kickback and muted
+  // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
-  Keyboard.setKeyDown(KEY_M, true);
+  //Keyboard.setKeyDown(KEY_M, true);
 }
 
 /*
@@ -664,14 +688,7 @@ public void draw(){
     background(0);
   }
   
-  // Draw cutoff
-  /*pushMatrix();
-  translate(0, BOX_SIZE * 3);
-  pushStyle();
-  fill(45, 0, 0, 200);
-  rect(0, 0, BOX_SIZE * NUM_COLS, BOX_SIZE);
-  popStyle();
-  popMatrix();*/
+
   
   pushMatrix();
   translate( BOARD_START_X, BOARD_START_Y);
@@ -691,15 +708,26 @@ public void draw(){
   drawNextShape();
 
   drawScoreAndLevel();
-      
+
   debug.clear();
 }
 
 /**
  */
 public void drawScoreAndLevel(){
-  drawText(largeFont, "LEVEL " + str(level+1), 50, 20);
-  drawText(largeFont, "SCORE " + str(score), 50, 40);
+  
+  image(levelLabel, 22, 40);
+  image(levelDisplay, 90 + 32, 40);
+  levelTextBox.setText(Utils.prependStringWithString(str(level+2), "0", 2));
+  levelTextBox.setPosition(50 + 16, 24);
+  levelTextBox.render();
+  
+  image(scoreLabel, 22, 70);
+  
+  image(scoreDisplay, 90 + 32, 70);
+  textBox.setText(Utils.prependStringWithString(str(score), "0", 7));
+  textBox.setPosition(50 + 16, 39);
+  textBox.render();
 }
 
 /**
@@ -731,8 +759,7 @@ public void restartGame(){
 /**
   * TODO: fix me
  */
-public void drawText(SpriteFont font, String text, int x, int y){
-  
+public void drawText(SpriteFont font, String text, int x, int y){  
   for(int i = 0; i < text.length(); i++){
     PImage charToPrint = font.getChar(text.charAt(i));
     image(charToPrint, x, y);
@@ -957,6 +984,64 @@ public void showGameOver(){
   drawText(smallFont, "Hit R to restart", 30, 230);
   
   didDrawGameOver = true;
+}
+
+public class TextBoxView{
+
+  /*public final class Align{
+    public static final int LEFT = 0;
+    public static final int RIGHT = 1;
+    public static final int CENTER = 2;
+  }*/
+  
+  private SpriteFont font;
+  private String text;
+  private int x, y;
+  private int align;
+  private boolean visible;
+  
+  public TextBoxView(){
+    text = "";
+    x = y = 0;
+    visible = true;
+  }
+  
+  public void setVisible(boolean vis){
+    visible = vis;
+  }
+  
+  public void setFont(String fontPath){
+    font = new SpriteFont(fontPath, 14, 14, 2);
+  }
+  
+  public void setPosition(int x, int y){
+    this.x = x;
+    this.y = y;
+  }
+  
+  public void render(){
+    if(visible == false){
+      return;
+    }
+    
+    if(font == null){
+      return;
+    }
+    
+    pushMatrix();
+    translate(x, y);
+    for(int i = 0; i < text.length(); i++){
+      PImage charToPrint = font.getChar(text.charAt(i));
+      image(charToPrint, x, y);
+      x += font.getCharWidth() + 2;
+    }
+    popMatrix();
+  }
+  
+  public void setText(String text){
+    this.text = text;
+  }
+
 }
 /*
  * Prints text on top of everything for real-time object tracking.
@@ -1817,5 +1902,24 @@ var Utils = {
   getRandomInt: function(minVal, maxVal){
     var scale = Math.random();
     return minVal + Math.floor(scale * (maxVal - minVal + 1));
+  },
+
+  /*
+  */
+  prependStringWithString: function(baseString, prefix, newStrLength){
+    var zerosToAdd, i;
+
+    if(newStrLength <= baseString.length()){
+      return baseString;
+    }
+    
+    zerosToAdd = newStrLength - baseString.length();
+    
+    for(i = 0; i < zerosToAdd; i++){
+      baseString = prefix + baseString;
+    }
+    
+    return baseString;
   }
+
 }

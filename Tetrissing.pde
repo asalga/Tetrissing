@@ -968,10 +968,16 @@ public void showGamePaused(){
  * TODO: display on game start
  */
 public void drawInstructions(){
-  int yPos = 330;
+  int yPos = 260;
   int buffer = 10;
   
   String[] instructions = {
+    "Space - Hard drop",
+    "Down  - Soft drop",
+    "E - Rotate Left",
+    "R - Rotate Right",
+    "",
+    
     "Toggle features",
     "---------------",
     "G - Ghost piece",

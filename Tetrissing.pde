@@ -23,6 +23,9 @@ final int GREEN    = 5;
 final int PURPLE   = 6;
 final int BABYBLUE = 7;
 
+final int ROTATE_RIGHT = 0;
+final int ROTATE_LEFT  = 1;
+
 PImage levelLabel;
 PImage levelDisplay;
 PImage scoreLabel;
@@ -176,6 +179,7 @@ public void setup(){
   
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
+  Keyboard.setKeyDown(KEY_ESC, true);
   //Keyboard.setKeyDown(KEY_M, true);
 }
 
@@ -801,11 +805,16 @@ public PImage getImageFromID(int col){
  * Rotating the shape may fail if rotating the shape results in
  * a collision with another piece on the board.
  */
-public void requestRotatePiece(){
+public void requestRotatePiece(int rotateDir){
   
-  // We try to rotate the shape, if it fails, we undo the rotation.
-  currentShape.rotate();
-      
+  // We try to rotate the shape, if it fails, we undo the rotation later on.
+  if(rotateDir == ROTATE_RIGHT){
+    currentShape.rotateRight();
+  }
+  else{
+    currentShape.rotateLeft();
+  }
+  
   //
   //
   //
@@ -842,7 +851,13 @@ public void requestRotatePiece(){
   }
     
   if(checkShapeCollision(currentShape, currShapeCol, currShapeRow)){
-    currentShape.unRotate();
+    
+    if(rotateDir == ROTATE_RIGHT){
+      currentShape.rotateLeft();
+    }else{
+      currentShape.rotateRight();
+    }
+    
   }
 }
 
@@ -873,7 +888,15 @@ public void keyPressed(){
   }
   
   if(keyCode == KEY_UP){
-    requestRotatePiece();
+    requestRotatePiece(ROTATE_RIGHT);
+  }
+  
+  if(keyCode == KEY_E){
+    requestRotatePiece(ROTATE_LEFT);
+  }
+  
+  if(keyCode == KEY_R){
+    requestRotatePiece(ROTATE_RIGHT);
   }
   
   Keyboard.setKeyDown(keyCode, true);
@@ -946,10 +969,16 @@ public void showGamePaused(){
  * TODO: display on game start
  */
 public void drawInstructions(){
-  int yPos = 330;
+  int yPos = 260;
   int buffer = 10;
   
   String[] instructions = {
+    "Space - Hard drop",
+    "Down  - Soft drop",
+    "E - Rotate Left",
+    "R - Rotate Right",
+    "",
+    
     "Toggle features",
     "---------------",
     "G - Ghost piece",

@@ -17,23 +17,22 @@ public class Shape{
   public int[][] getArr(){
     return shape;
   }
+  
   public void changeShape(){
   }
   
-  public void rotate(){
-    state++;
-    if(state >= numStates){
-      state = 0;
-    }
-    changeShape();
-  }
-  
-
-  
-  public void unRotate(){
+  public void rotateLeft(){
     state--;
     if(state < 0){
       state = numStates - 1;
+    }
+    changeShape();
+  }
+
+  public void rotateRight(){
+    state++;
+    if(state >= numStates){
+      state = 0;
     }
     changeShape();
   }

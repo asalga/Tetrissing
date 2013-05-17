@@ -179,6 +179,7 @@ public void setup(){
   
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
+  Keyboard.setKeyDown(KEY_ESC, true);
   //Keyboard.setKeyDown(KEY_M, true);
 }
 

@@ -179,7 +179,7 @@ public void setup(){
   
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
-  Keyboard.setKeyDown(KEY_ESC, true);
+  Keyboard.setVirtualKeyDown(KEY_ESC, true);
   //Keyboard.setKeyDown(KEY_M, true);
 }
 
@@ -266,10 +266,10 @@ public void createBorders(){
  * keep going down until we find a collision.
  */
 public void findGhostPiecePosition(){
-  //
-  //if(allowDrawingGhost == false){
-  //  return;
-  //}
+  
+  if(allowDrawingGhost == false){
+    return;
+  }
   
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;
@@ -722,7 +722,7 @@ public void drawScoreAndLevel(){
   
   image(levelLabel, 22, 40);
   image(levelDisplay, 90 + 32, 40);
-  levelTextBox.setText(Utils.prependStringWithString(str(level+2), "0", 2));
+  levelTextBox.setText(Utils.prependStringWithString(str(level+1), "0", 2));
   levelTextBox.setPosition(50 + 16, 24);
   levelTextBox.render();
   
@@ -1483,7 +1483,7 @@ public static class Keyboard{
    */
   public static void lockKeys(int[] keys){
     for(int k : keys){
-      if( k > -1 && k < NUM_KEYS){
+      if(isValidKey(k)){
         lockableKeys[k] = true;
       }
     }
@@ -1494,43 +1494,55 @@ public static class Keyboard{
    */
   public static void unlockKeys(int[] keys){
     for(int k : keys){
-      if(k > -1 && k < NUM_KEYS){
+      if(isValidKey(k)){
         lockableKeys[k] = false;
       }
     }
+  }
+  
+  /* This is for the case when we want to start off the game
+   * assuming a key is already down.
+   */
+  public static void setVirtualKeyDown(int key, boolean state){
+    setKeyDown(key, true);
+    setKeyDown(key, false);
+  }
+  
+  public static boolean isValidKey(int key){
+    return (key > -1 && key < NUM_KEYS);
   }
   
   /*
    * Set the state of a key to either down (true) or up (false)
    */
   public static void setKeyDown(int key, boolean state){
-    if(key <= -1 || key >= NUM_KEYS){
-      return;
-    }
     
-    // If the key is lockable, as soon as we tell the class the key is down, we lock it.
-    if( lockableKeys[key] ){
-        // First time pressed
-        if(state == true && lockedKeyPresses[key] == 0){
-          lockedKeyPresses[key]++;
-          keys[key] = true;
-        }
-        // First time released
-        else if(state == false && lockedKeyPresses[key] == 1){
-          lockedKeyPresses[key]++;
-        }
-        // Second time pressed
-        else if(state == true && lockedKeyPresses[key] == 2){
-           lockedKeyPresses[key]++;
-        }
-        // Second time released
-        else if (state == false && lockedKeyPresses[key] == 3){
-          lockedKeyPresses[key] = 0;
-          keys[key] = false;
-        }
-    }
-    else{
-      keys[key] = state;
+    if(isValidKey(key)){
+      
+      // If the key is lockable, as soon as we tell the class the key is down, we lock it.
+      if( lockableKeys[key] ){
+          // First time pressed
+          if(state == true && lockedKeyPresses[key] == 0){
+            lockedKeyPresses[key]++;
+            keys[key] = true;
+          }
+          // First time released
+          else if(state == false && lockedKeyPresses[key] == 1){
+            lockedKeyPresses[key]++;
+          }
+          // Second time pressed
+          else if(state == true && lockedKeyPresses[key] == 2){
+             lockedKeyPresses[key]++;
+          }
+          // Second time released
+          else if (state == false && lockedKeyPresses[key] == 3){
+            lockedKeyPresses[key] = 0;
+            keys[key] = false;
+          }
+      }
+      else{
+        keys[key] = state;
+      }
     }
   }
   
@@ -1804,7 +1816,7 @@ public class SpriteFont{
     
     // For each character, truncate the x margin
     for(int currChar = 0; currChar < 96; currChar++){
-      chars[currChar] = truncateImage( chars[currChar] );
+      //chars[currChar] = truncateImage( chars[currChar] );
     }
   }
   

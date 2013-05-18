@@ -69,7 +69,7 @@ public class SpriteFont{
     
     // For each character, truncate the x margin
     for(int currChar = 0; currChar < 96; currChar++){
-      chars[currChar] = truncateImage( chars[currChar] );
+      //chars[currChar] = truncateImage( chars[currChar] );
     }
   }
   

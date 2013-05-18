@@ -266,10 +266,10 @@ public void createBorders(){
  * keep going down until we find a collision.
  */
 public void findGhostPiecePosition(){
-  //
-  //if(allowDrawingGhost == false){
-  //  return;
-  //}
+  
+  if(allowDrawingGhost == false){
+    return;
+  }
   
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;

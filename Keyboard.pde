@@ -48,7 +48,9 @@ public static class Keyboard{
     setKeyDown(key, false);
   }
   
-  public static boolean isValidKey(int key){
+  /**
+   */
+  private static boolean isValidKey(int key){
     return (key > -1 && key < NUM_KEYS);
   }
   
@@ -94,16 +96,25 @@ public static class Keyboard{
   }
 }
 
-final int KEY_ENTER = 10;
+// These are outside of keyboard simply because I don't want to keep
+// typing Keyboard.KEY_* in the main Tetrissing.pde file
+final int KEY_BACKSPACE = 8;
+final int KEY_TAB       = 9;
+final int KEY_ENTER     = 10;
 
+final int KEY_SHIFT     = 16;
+final int KEY_CTRL      = 17;
+final int KEY_ALT       = 18;
 
+final int KEY_CAPS      = 20;
 final int KEY_ESC = 27;
 
-// These are outside of keyboard simply because I don't want to keep
-// typing Keyboard.KEY_*
 final int KEY_SPACE  = 32;
+final int KEY_PGUP   = 33;
+final int KEY_PGDN   = 34;
+final int KEY_END    = 35;
+final int KEY_HOME   = 36;
 
-// Arrow keys
 final int KEY_LEFT   = 37;
 final int KEY_UP     = 38;
 final int KEY_RIGHT  = 39;
@@ -146,31 +157,18 @@ final int KEY_W = 87;
 final int KEY_X = 88;
 final int KEY_Y = 89;
 final int KEY_Z = 90;
-/*
-// Lowercase
-final int KEY_a = 97;
-final int KEY_b = 98;
-final int KEY_c = 99;
-final int KEY_d = 100;
-final int KEY_e = 101;
-final int KEY_f = 102;
-final int KEY_g = 103;
-final int KEY_h = 104;
-final int KEY_i = 105;
-final int KEY_j = 106;
-final int KEY_k = 107;
-final int KEY_l = 108;
-final int KEY_m = 109;
-final int KEY_n = 110;
-final int KEY_o = 111;
-final int KEY_p = 112;
-final int KEY_q = 113;
-final int KEY_r = 114;
-final int KEY_s = 115;
-final int KEY_t = 116;
-final int KEY_u = 117;
-final int KEY_v = 118;
-final int KEY_w = 119;
-final int KEY_x = 120;
-final int KEY_y = 121;
-final int KEY_z = 122;*/
+
+// Function keys
+final int KEY_F1  = 112;
+final int KEY_F2  = 113;
+final int KEY_F3  = 114;
+final int KEY_F4  = 115;
+final int KEY_F5  = 116;
+final int KEY_F6  = 117;
+final int KEY_F7  = 118;
+final int KEY_F8  = 119;
+final int KEY_F9  = 120;
+final int KEY_F10 = 121;
+final int KEY_F12 = 122;
+
+//final int KEY_INSERT = 155;

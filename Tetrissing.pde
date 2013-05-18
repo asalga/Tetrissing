@@ -722,7 +722,7 @@ public void drawScoreAndLevel(){
   
   image(levelLabel, 22, 40);
   image(levelDisplay, 90 + 32, 40);
-  levelTextBox.setText(Utils.prependStringWithString(str(level+2), "0", 2));
+  levelTextBox.setText(Utils.prependStringWithString(str(level+1), "0", 2));
   levelTextBox.setPosition(50 + 16, 24);
   levelTextBox.render();
   

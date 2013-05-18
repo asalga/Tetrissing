@@ -179,7 +179,7 @@ public void setup(){
   
   // Assume the user wants kickback
   Keyboard.setKeyDown(KEY_K, true);
-  Keyboard.setKeyDown(KEY_ESC, true);
+  Keyboard.setVirtualKeyDown(KEY_ESC, true);
   //Keyboard.setKeyDown(KEY_M, true);
 }
 
@@ -266,10 +266,10 @@ public void createBorders(){
  * keep going down until we find a collision.
  */
 public void findGhostPiecePosition(){
-  //
-  //if(allowDrawingGhost == false){
-  //  return;
-  //}
+  
+  if(allowDrawingGhost == false){
+    return;
+  }
   
   ghostShapeCol = currShapeCol;
   ghostShapeRow = currShapeRow;
@@ -722,7 +722,7 @@ public void drawScoreAndLevel(){
   
   image(levelLabel, 22, 40);
   image(levelDisplay, 90 + 32, 40);
-  levelTextBox.setText(Utils.prependStringWithString(str(level+2), "0", 2));
+  levelTextBox.setText(Utils.prependStringWithString(str(level+1), "0", 2));
   levelTextBox.setPosition(50 + 16, 24);
   levelTextBox.render();
   

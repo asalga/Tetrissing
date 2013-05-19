@@ -23,6 +23,8 @@ function SoundManager(){
       sounds[i].setAttribute('src', paths[i]);
       sounds[i].preload = 'auto';
       sounds[i].load();
+      sounds[i].volume = 0;
+      sounds[i].setAttribute('autoplay', 'autoplay');
     }
   };
 
@@ -39,9 +41,19 @@ function SoundManager(){
     if(muted){
       return;
     }
-    sounds[soundID].play();
-    sounds[soundID].currentTime = 0;
-  };
+
+    sounds[soundID].volume = 1.0;
+
+    // Safari does not want to play sounds...??
+    try{
+      sounds[soundID].volume = 1.0;
+      sounds[soundID].play();
+      sounds[soundID].currentTime = 0;
+    }catch(e){
+      console.log("Could not play audio file.");
+    }
+
+};
 
   this.playDropPieceSound = function(){
     this.playSound(DROP);

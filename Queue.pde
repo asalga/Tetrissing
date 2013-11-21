@@ -1,5 +1,6 @@
 /*
  A Queue for the next few pieces.
+*
 */
 public class Queue<T>{
   private ArrayList<T> items;
@@ -7,7 +8,6 @@ public class Queue<T>{
   public Queue(){
     items = new ArrayList<T>();
   }
-
   public void pushBack(T i){
     items.add(i);
   }
@@ -15,13 +15,12 @@ public class Queue<T>{
   public T popFront(){
     T item = items.get(0);
     items.remove(0);
-    return item;
+     return item;
   }
   
   public boolean isEmpty(){
     return items.isEmpty();
   }
-  
   public int size(){
     return items.size();
   }

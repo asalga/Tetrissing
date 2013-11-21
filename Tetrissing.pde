@@ -5,6 +5,8 @@ import ddf.minim.*;
 
 final boolean DEBUG = false;
 
+//
+// alsdjflajsdlfkjla
 final int T_SHAPE = 0;
 final int L_SHAPE = 1;
 final int J_SHAPE = 2;

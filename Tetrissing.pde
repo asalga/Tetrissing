@@ -973,6 +973,8 @@ public void showGamePaused(){
  * TODO: display on game start
  */
 public void drawInstructions(){
+  return;
+  
   int yPos = 260;
   int buffer = 10;
   

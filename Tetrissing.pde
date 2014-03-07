@@ -103,7 +103,7 @@ final int BOARD_START_Y = (BLOCK_SIZE  * 4) - 4;
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
 float sideSpeed = 3f;
-float dropSpeed = 0.25f;
+float dropSpeed = 1.0f;
 
 Debugger debug;
 Ticker dropTicker;

@@ -357,7 +357,7 @@ public void update(){
   
   soundManager.setMute(Keyboard.isKeyDown(KEY_M));
   
-  dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
+  //dropSpeed =  Keyboard.isKeyDown(KEY_DOWN)  ? 0.001f : 0.5f;
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
   
   // Features
@@ -502,7 +502,7 @@ public void addPieceToBoard(Shape shape){
     //
     if(level < MAX_LEVELS - 1 && scoreForThisLevel >= scoreReqForNextLevel[level]){
       scoreForThisLevel = 0;
-      level++;
+      //level++;
     }
     clearLineAnimator = new ClearLineAnimator();
     clearLineAnimator.setRowIndicesToClear(rowIndicesToClear);
@@ -722,6 +722,8 @@ public void draw(){
  */
 public void drawScoreAndLevel(){
   
+  return;
+
   image(levelLabel, 22, 40);
   image(levelDisplay, 90 + 32, 40);
   levelTextBox.setText(Utils.prependStringWithString(str(level+1), "0", 2));
@@ -886,7 +888,7 @@ public void keyPressed(){
   }
   
   if(keyCode == KEY_SPACE){
-    dropPiece();
+    //dropPiece();
   }
   
   if(keyCode == KEY_UP){

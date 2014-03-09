@@ -892,7 +892,7 @@ public void keyPressed(){
   }
   
   if(keyCode == KEY_SPACE){
-    dropPiece();
+    //dropPiece();
   }
   
   if(keyCode == KEY_UP){

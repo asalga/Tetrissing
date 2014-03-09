@@ -660,7 +660,8 @@ public void draw(){
   }
 
   if(hasLostGame){
-    showGameOver();
+    restartGame();
+    //showGameOver();
     return;
   }
   
@@ -891,7 +892,7 @@ public void keyPressed(){
   }
   
   if(keyCode == KEY_SPACE){
-    //dropPiece();
+    dropPiece();
   }
   
   if(keyCode == KEY_UP){

@@ -98,7 +98,8 @@ final int BLOCK_SIZE = 16;
 // Where the Tetris board starts. Keep in mind we don't show the borders
 // or the extra rows at the top.
 final int BOARD_START_X = 10;
-final int BOARD_START_Y = (BLOCK_SIZE  * 4) - 4;
+final int BOARD_START_Y = 23 - (BLOCK_SIZE * 3) + 1;
+//(BLOCK_SIZE  * 4) - 4;
 
 int[][] grid = new int[NUM_COLS][NUM_ROWS];
 
@@ -128,7 +129,7 @@ TextBoxView instructionsTextBox;
 /*
  */
 public void setup(){
-  size(284, 464);
+  size(284, 380);
   
   images[RED] = loadImage("data/images/red.png");
   images[ORANGE] = loadImage("data/images/orange.png");
@@ -697,7 +698,7 @@ public void draw(){
 
   
   pushMatrix();
-  translate( BOARD_START_X, BOARD_START_Y);
+  translate(BOARD_START_X, BOARD_START_Y);
   drawBoard();
   
   drawGhostPiece();
@@ -955,14 +956,14 @@ public void showGamePaused(){
   drawNextShape();
   
   pushMatrix();
-  translate(23, 108);
+  translate(23, BOARD_START_Y + 48);
   noStroke();
   fill(0, 200);
   rect(0, 0, (NUM_COLS - 2) * BLOCK_SIZE + 4, (NUM_ROWS - 4) * BLOCK_SIZE);
   popMatrix();
   
-  drawText(largeFont, "PAUSED", 60, 200);
-  drawText(smallFont, "Hit Esc to resume", 30, 230);
+  drawText(largeFont, "PAUSED", 60, height/2 - 50);
+  drawText(smallFont, "Hit Esc to resume", 30, height/2 + 30 - 50);
   
   drawScoreAndLevel();
   drawInstructions();
@@ -973,6 +974,8 @@ public void showGamePaused(){
  * TODO: display on game start
  */
 public void drawInstructions(){
+  return;
+  
   int yPos = 260;
   int buffer = 10;
   
@@ -1010,11 +1013,11 @@ public void showGameOver(){
   popStyle();
   
   image(backgroundImg, 0, 0);
-  drawText(largeFont, "GAME OVER", 30, 200);
+  drawText(largeFont, "GAME OVER", 30, 100);
   
   drawScoreAndLevel();
   
-  drawText(smallFont, "Hit R to restart", 30, 230);
+  drawText(smallFont, "Hit R to restart", 30, 130);
   
   didDrawGameOver = true;
 }

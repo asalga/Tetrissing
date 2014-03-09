@@ -780,7 +780,9 @@ public void drawText(SpriteFont font, String text, int x, int y){
  */
 public void drawNextShape(){
   pushMatrix();
-  translate(-100, 200);
+  drawText(smallFont, "NEXT:", 200, height/2 - 70);
+
+  translate(-100, height/2 - 50);
   Shape nextShape = (Shape)nextPieceQueue.peekFront();
   drawShape(nextShape, 20, 0);
   popMatrix();

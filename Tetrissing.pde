@@ -362,9 +362,9 @@ public void update(){
   sideSpeed =  Keyboard.isKeyDown(KEY_LEFT) ||  Keyboard.isKeyDown(KEY_RIGHT) ? 0.08f : 0f;
   
   // Features
-  allowFadeEffect   = Keyboard.isKeyDown(KEY_F);
-  allowKickBack     = Keyboard.isKeyDown(KEY_K);
-  allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
+  //allowFadeEffect   = Keyboard.isKeyDown(KEY_F);
+  //allowKickBack     = Keyboard.isKeyDown(KEY_K);
+  //allowDrawingGhost = Keyboard.isKeyDown(KEY_G);
     
   dropTicker.tick();
   
